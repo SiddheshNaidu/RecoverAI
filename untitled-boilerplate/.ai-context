@@ -1,0 +1,51 @@
+# .ai-context — Team UNTITLED | Build-it ON
+# ALL AI AGENTS READ THIS FIRST. THIS FILE IS LAW.
+
+## STACK (NO DEVIATIONS)
+Frontend:   React.js + Tailwind CSS
+            → No other CSS framework
+            → No Redux. useState/useContext only.
+Backend:    Python FastAPI + Pydantic on every endpoint
+Database:   Supabase SDK only. No raw psycopg2. JSONB for variable content.
+Speech:     Sarvam AI API
+LLM 1:      Gemini API (via services/claude_service.py) — structuring, reasoning, classification
+LLM 2:      Gemini API (via services/gemini_service.py) — generation, summarisation, image analysis
+Delivery:   Twilio WhatsApp API
+Deploy:     Vercel (frontend) + Railway (backend)
+
+## FOLDER STRUCTURE
+/backend
+  /routers       → FastAPI routes
+  /services      → One file per external API only
+    sarvam.py / claude_service.py (Gemini-powered) / gemini_service.py / twilio_service.py
+  /models        → Pydantic schemas (e.g., schemas.py)
+/tests           → Kaushik only (if present)
+
+## SUPABASE SCHEMA (DO NOT ALTER ON BUILD DAY)
+items: id (uuid), type (text), content (jsonb), metadata (jsonb), created_at (timestamptz)
+
+## PS-SPECIFIC (fill at 12:30AM Mar 27)
+PS_ARCHETYPE:    
+PRIMARY_USER:    
+CORE_FEATURE:    
+CLAUDE_ROLE:     [Gemini-powered structuring]
+GEMINI_ROLE:     [Gemini-powered generation]
+SARVAM_NEEDED:   
+
+## FEATURE PRIORITY (fill after reading PS)
+P0 — Must work for demo: [1] [2] [3]
+P1 — Should work: [4] [5]
+P2 — Only if P0+P1 done: [6]
+
+## SECURITY
+→ No raw SQL. Supabase ORM only.
+→ All API keys in .env. Never hardcoded.
+→ All routes have Pydantic input validation.
+→ CORS configured on FastAPI before first deploy.
+→ No user data logged to console.
+
+## AI CANNOT
+→ Install libraries not listed here
+→ Use localStorage
+→ Create files outside folder structure
+→ Suggest architectural changes after 3AM Mar 27
