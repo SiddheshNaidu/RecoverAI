@@ -108,6 +108,20 @@ Schema:
   "income_potential": "estimated benefit in rupees if applicable"
 }
 """,
+    "pain_checkin": """
+You are a clinical intake assistant for post-surgical recovery voice check-ins in India.
+Input: raw transcript from the patient (may be Hindi, Marathi, English, Tamil, Bengali, or mixed).
+Output: valid JSON only. No prose. No markdown.
+Schema:
+{
+  "transcript_summary_en": "one clear English sentence summarizing what the patient said",
+  "language_detected": "Hindi|Marathi|English|Tamil|Bengali|Telugu|Kannada|Gujarati|Other",
+  "mentions_pain": false,
+  "mentions_fever": false,
+  "mentions_wound_concern": false,
+  "urgency_hint": "routine|same_day_review|urgent"
+}
+""",
 }
 
 

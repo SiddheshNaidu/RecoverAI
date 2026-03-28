@@ -148,6 +148,7 @@ async def process_audio(
     request: Request,
     audio: UploadFile = File(...),
     prompt_type: str = Form(..., max_length=MAX_TEXT_CHARS),
+    language_code: str = Form(default="hi-IN", max_length=32),
     sb: Client = Depends(_supabase_dep),
 ) -> Any:
     try:
@@ -160,7 +161,9 @@ async def process_audio(
             return _payload_too_large(
                 f"Audio upload exceeds maximum size of {MAX_UPLOAD_BYTES // (1024 * 1024)}MB"
             )
-        transcript = await sarvam.transcribe(audio_bytes)
+        transcript = await sarvam.transcribe(
+            audio_bytes, language_code, audio.content_type
+        )
         structured = await claude_service.structure(transcript, prompt_type)
         content = _content_from_structure(structured)
         metadata: dict[str, Any] = {

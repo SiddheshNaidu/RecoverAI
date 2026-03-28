@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { submitCheckin } from "../api/client";
+import { useApp } from "../context/AppContext";
 
 /** @typedef {'idle'|'recording'|'transcribing'|'reviewing'|'processing'|'result'} CheckinStep */
 
@@ -36,6 +37,7 @@ const INITIAL_STATE = {
  * @param {string} patientId
  */
 export function useCheckin(patientId) {
+  const { preferredLanguage } = useApp();
   const [state, setState] = useState(INITIAL_STATE);
 
   // MediaRecorder ref for voice recording
@@ -124,6 +126,7 @@ export function useCheckin(patientId) {
       const formData = new FormData();
       formData.append("patient_id",    patientId);
       formData.append("reporter_type", state.isProxyMode ? "family_proxy" : "self");
+      formData.append("language_code", preferredLanguage.sarvam);
       formData.append(
         "medications_confirmed",
         JSON.stringify(state.medConfirmations)
@@ -148,7 +151,7 @@ export function useCheckin(patientId) {
         error: err instanceof Error ? err.message : "Submission failed. Please try again.",
       }));
     }
-  }, [patientId, state.audioBlob, state.transcript, state.woundImage, state.medConfirmations, state.isProxyMode]);
+  }, [patientId, preferredLanguage.sarvam, state.audioBlob, state.transcript, state.woundImage, state.medConfirmations, state.isProxyMode]);
 
   // ── Reset ─────────────────────────────────────────────────
 

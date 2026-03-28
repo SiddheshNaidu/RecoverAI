@@ -47,6 +47,22 @@ def _language_code(language: str) -> str:
     return _LANGUAGE_ALIASES.get(lower, f"{lower}-IN")
 
 
+def _audio_file_fields(audio_bytes: bytes, content_type: str | None) -> tuple[str, bytes, str]:
+    """Browser mics often produce webm/opus — Sarvam accepts common audio MIME types."""
+    ct = (content_type or "").split(";")[0].strip().lower()
+    if "webm" in ct:
+        return ("audio.webm", audio_bytes, "audio/webm")
+    if "ogg" in ct:
+        return ("audio.ogg", audio_bytes, ct or "audio/ogg")
+    if "mp4" in ct or "m4a" in ct:
+        return ("audio.m4a", audio_bytes, ct or "audio/mp4")
+    if "mpeg" in ct or "mp3" in ct:
+        return ("audio.mp3", audio_bytes, ct or "audio/mpeg")
+    if "wav" in ct:
+        return ("audio.wav", audio_bytes, "audio/wav")
+    return ("audio.wav", audio_bytes, "audio/wav")
+
+
 def _extract_transcript(body: Any) -> str:
     if not isinstance(body, dict):
         return ""
@@ -56,7 +72,9 @@ def _extract_transcript(body: Any) -> str:
     return t if isinstance(t, str) else ""
 
 
-async def transcribe(audio_bytes: bytes, language: str = "hi") -> str:
+async def transcribe(
+    audio_bytes: bytes, language: str = "hi", content_type: str | None = None
+) -> str:
     try:
         if not audio_bytes:
             return ""
@@ -72,13 +90,8 @@ async def transcribe(audio_bytes: bytes, language: str = "hi") -> str:
             "mode": "transcribe",
             "language_code": _language_code(language),
         }
-        files = {
-            "file": (
-                "audio.wav",
-                audio_bytes,
-                "audio/wav",
-            )
-        }
+        fname, body, mime = _audio_file_fields(audio_bytes, content_type)
+        files = {"file": (fname, body, mime)}
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
             response = await client.post(

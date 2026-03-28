@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { generateContent, parseModelJsonString, buildRecoveryPlanPrompt } from '../api/client';
 
 const MOCK_PLAN = {
   day: 4,
@@ -28,17 +29,82 @@ const MOCK_PLAN = {
   ],
 };
 
+function normalizePlan(raw, day, condition) {
+  if (!raw || typeof raw !== 'object') return null;
+  const meds = Array.isArray(raw.medications) ? raw.medications : [];
+  const instructions = Array.isArray(raw.instructions) ? raw.instructions : [];
+  return {
+    day,
+    condition,
+    phase: String(raw.phase_label || 'Recovery phase'),
+    goal: String(raw.day_goal || raw.goal || ''),
+    motivational_note: String(raw.motivational_note || ''),
+    instructions: instructions.length ? instructions.map(String) : MOCK_PLAN.instructions,
+    medications: meds.length
+      ? meds.map((m) => ({
+          time: String(m.time || ''),
+          name: String(m.name || ''),
+          note: String(m.note || ''),
+        }))
+      : MOCK_PLAN.medications,
+    diet: String(raw.diet || MOCK_PLAN.diet),
+    mobility: String(raw.mobility_level || raw.mobility || MOCK_PLAN.mobility),
+    warnings: Array.isArray(raw.warning_signs) && raw.warning_signs.length
+      ? raw.warning_signs.map(String)
+      : MOCK_PLAN.warnings,
+  };
+}
+
 export default function RecoveryPlanPage() {
   const { currentPatient } = useApp();
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const plan = MOCK_PLAN;
-  const [checkedMeds, setCheckedMeds] = useState(plan.medications.map(() => false));
-  const [checkedSteps, setCheckedSteps] = useState(plan.instructions.map(() => false));
+  const day = currentPatient?.recovery_day ?? MOCK_PLAN.day;
+  const condition = currentPatient?.condition || MOCK_PLAN.condition;
+
+  const [plan, setPlan] = useState(() => ({ ...MOCK_PLAN, day, condition }));
+  const [planLoading, setPlanLoading] = useState(true);
+  const [planError, setPlanError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setPlanLoading(true);
+      setPlanError(null);
+      try {
+        const prompt = buildRecoveryPlanPrompt({
+          day,
+          surgeryType: condition,
+          medications: 'prescribed post-operative medications',
+          instructions: 'standard wound care, pain control, and gradual return to mobility as tolerated',
+        });
+        const data = await generateContent(prompt);
+        const parsed = parseModelJsonString(data.result);
+        const next = normalizePlan(parsed, day, condition);
+        if (!cancelled && next) setPlan(next);
+        else if (!cancelled && !parsed) setPlanError('Could not parse AI plan. Showing sample protocol.');
+      } catch (e) {
+        if (!cancelled) setPlanError(e instanceof Error ? e.message : 'Plan request failed.');
+      } finally {
+        if (!cancelled) setPlanLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [day, condition]);
+
+  const [checkedMeds, setCheckedMeds] = useState(MOCK_PLAN.medications.map(() => false));
+  const [checkedSteps, setCheckedSteps] = useState(MOCK_PLAN.instructions.map(() => false));
+
+  useEffect(() => {
+    setCheckedMeds(plan.medications.map(() => false));
+    setCheckedSteps(plan.instructions.map(() => false));
+  }, [plan.medications.length, plan.instructions.length]);
 
   const allMedsDone = checkedMeds.every(Boolean);
-  const progress = Math.round((checkedSteps.filter(Boolean).length / checkedSteps.length) * 100);
+  const progress = plan.instructions.length
+    ? Math.round((checkedSteps.filter(Boolean).length / plan.instructions.length) * 100)
+    : 0;
 
   const toggleMed  = i => setCheckedMeds(p => { const n = [...p]; n[i] = !n[i]; return n; });
   const toggleStep = i => setCheckedSteps(p => { const n = [...p]; n[i] = !n[i]; return n; });
@@ -52,6 +118,12 @@ export default function RecoveryPlanPage() {
         style={{ background: 'linear-gradient(135deg, #1e2c22 0%, #2e3d32 50%, #3d5442 100%)' }}
       >
         <div className="max-w-[800px] mx-auto flex flex-col gap-4 relative z-10">
+          {planLoading && (
+            <p className="font-inter text-white/70 text-sm">Loading personalised plan from Gemini…</p>
+          )}
+          {planError && (
+            <p className="font-inter text-amber-200/90 text-sm rounded-xl bg-black/20 px-3 py-2">{planError}</p>
+          )}
           {/* Back + label row */}
           <div className="flex items-center gap-3">
             <button
