@@ -1,38 +1,33 @@
 /**
- * App.jsx — RecoverAI Router
- * Sets up all routes and wraps everything in AppProvider.
- * 
- * Routes:
- *   /                     → OnboardPage (patient setup / role selector)
- *   /patient/:id          → PatientHomePage
- *   /patient/:id/checkin  → CheckinPage
- *   /dashboard            → NurseDashboardPage
+ * App.jsx — RecoverAI Complete Router
+ * All routes from PRD §11 are wired here.
  */
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppProvider } from "./context/AppContext";
-
-// Pages — lazy loaded for performance
+import { AppProvider }   from "./context/AppContext";
 import { lazy, Suspense } from "react";
+import TopNav from "./components/TopNav";
 
-const OnboardPage         = lazy(() => import("./pages/OnboardPage"));
-const PatientHomePage     = lazy(() => import("./pages/PatientHomePage"));
-const CheckinPage         = lazy(() => import("./pages/CheckinPage"));
-const ReceptionistDashboardPage = lazy(() => import("./pages/ReceptionistDashboardPage"));
+// ── Patient flow ──────────────────────────────────────────────────────────
+const LandingPage       = lazy(() => import("./pages/LandingPage"));
+const OnboardPage       = lazy(() => import("./pages/OnboardPage"));
+const PatientHomePage   = lazy(() => import("./pages/PatientHomePage"));
+const RecoveryPlanPage  = lazy(() => import("./pages/RecoveryPlanPage"));
+const CheckinPage       = lazy(() => import("./pages/CheckinPage"));
+const HistoryPage       = lazy(() => import("./pages/HistoryPage"));
+const SOSPage           = lazy(() => import("./pages/SOSPage"));
 
-/** Full-screen centered loading fallback */
+// ── Receptionist flow ─────────────────────────────────────────────────────
+const LoginPage                  = lazy(() => import("./pages/LoginPage"));
+const ReceptionistDashboardPage  = lazy(() => import("./pages/ReceptionistDashboardPage"));
+const RegisterPatientPage        = lazy(() => import("./pages/RegisterPatientPage"));
+const ReceptionistPatientView    = lazy(() => import("./pages/ReceptionistPatientView"));
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <span
-          className="material-symbols-outlined text-primary animate-spin"
-          style={{ fontSize: 40 }}
-        >
-          progress_activity
-        </span>
-        <p className="text-on-surface-variant text-sm font-medium">Loading…</p>
-      </div>
+      <span className="material-symbols-outlined text-primary text-[40px] animate-spin">
+        progress_activity
+      </span>
     </div>
   );
 }
@@ -42,14 +37,32 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/"                      element={<OnboardPage />} />
-            <Route path="/patient/:id"           element={<PatientHomePage />} />
-            <Route path="/patient/:id/checkin"   element={<CheckinPage />} />
-            <Route path="/receptionist"          element={<ReceptionistDashboardPage />} />
-            {/* Catch-all → redirect home */}
-            <Route path="*"                      element={<Navigate to="/" replace />} />
-          </Routes>
+          <div className="flex flex-col min-h-screen">
+            <TopNav />
+            <main className="flex-1 flex flex-col">
+              <Routes>
+                {/* Public */}
+                <Route path="/"                          element={<LandingPage />} />
+
+                {/* Patient flow */}
+                <Route path="/onboard"                   element={<OnboardPage />} />
+                <Route path="/patient/:id"               element={<PatientHomePage />} />
+                <Route path="/patient/:id/plan"          element={<RecoveryPlanPage />} />
+                <Route path="/patient/:id/checkin"       element={<CheckinPage />} />
+                <Route path="/patient/:id/history"       element={<HistoryPage />} />
+                <Route path="/patient/:id/sos"           element={<SOSPage />} />
+
+                {/* Receptionist flow */}
+                <Route path="/login"                     element={<LoginPage />} />
+                <Route path="/receptionist"              element={<ReceptionistDashboardPage />} />
+                <Route path="/receptionist/new"          element={<RegisterPatientPage />} />
+                <Route path="/receptionist/patient/:id"  element={<ReceptionistPatientView />} />
+
+                {/* Catch-all */}
+                <Route path="*"                          element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+          </div>
         </Suspense>
       </BrowserRouter>
     </AppProvider>

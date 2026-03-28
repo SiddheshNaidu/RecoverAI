@@ -1,14 +1,303 @@
+/* ============================================================
+   RecoverAI — "Therapeutic Editorial" Global Styles
+   Stitch RecoverAI_v2 Design System
+   ============================================================ */
+
+/* 1. Google Fonts — Manrope (headings) + Inter (body) */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Global reset additions */
-*, *::before, *::after {
-  box-sizing: border-box;
+/* ── 2. Base resets ──────────────────────────────────────── */
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 0.875rem;
+    /* body-md base */
+    line-height: 1.6;
+    color: #1c1c11;
+    /* --ink */
+    background-color: #fdfae7;
+    /* --surface (warm sand) */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* HeadingsM→ Manrope as the editorial "voice" */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Manrope", sans-serif;
+    color: #1c1c11;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  /* Reduce motion — wire to all animations */
+  @media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* ── 3. Therapeutic Component Primitives ─────────────────── */
+@layer components {
+
+  /* ── Navbar: Frosted Glass ─── */
+  .nav-glass {
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(194, 200, 192, 0.15);
+    /* outline-variant @ 15% */
+  }
+
+  /* ── Brand Gradient Text (Manrope, Sage→Sage-light) ─── */
+  .brand-gradient {
+    font-family: "Manrope", sans-serif;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4a654f 0%, #8daa91 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Therapeutic Card (tonal lift, NO 1px borders) ─── */
+  .card-therapeutic {
+    background-color: #ffffff;
+    border-radius: 1.5rem;
+    box-shadow: 0px 20px 40px rgba(28, 28, 17, 0.06);
+    /* NO overflow:hidden — allows StatusOrb to break out */
+  }
+
+  /* Light tonal card */
+  .card-tonal {
+    background-color: #f7f4e1;
+    border-radius: 1rem;
+    /* NO overflow:hidden */
+  }
+
+  /* Fix: Material Symbols icon font rendering */
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: 'liga';
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Ghost border — accessibility fallback (felt, not seen) */
+  .ghost-border {
+    border: 1px solid rgba(194, 200, 192, 0.15);
+    /* outline-variant @ 15% */
+  }
+
+  /* ── CTA: Gradient Primary Button (silk-like) ─── */
+  .btn-gradient {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    /* a11y touch target */
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    border: none;
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4a654f 0%, #8daa91 100%);
+    background-size: 200% 200%;
+    transition: background-position 300ms ease, transform 100ms ease, opacity 200ms ease;
+  }
+
+  .btn-gradient:hover {
+    background-position: 100% 0;
+  }
+
+  .btn-gradient:active {
+    transform: scale(0.96);
+  }
+
+  .btn-gradient:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ── Secondary Button ─── */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    border: none;
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #424842;
+    /* on-surface-variant */
+    background-color: #e6e3d0;
+    /* surface-container-highest */
+    transition: background-color 200ms ease, transform 100ms ease;
+  }
+
+  .btn-secondary:hover {
+    background-color: #dddbc8;
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.96);
+  }
+
+  /* ── StatusOrb: Physical, breathing sphere ─── */
+  .status-orb {
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-orb-stable {
+    background: linear-gradient(135deg, #4a654f, #8daa91);
+    box-shadow: 0 0 32px rgba(74, 101, 79, 0.3);
+  }
+
+  .status-orb-warning {
+    background: linear-gradient(135deg, #c97a00, #f2b84b);
+    box-shadow: 0 0 32px rgba(201, 122, 0, 0.3);
+  }
+
+  .status-orb-critical {
+    background: linear-gradient(135deg, #ba1a1a, #e57373);
+    box-shadow: 0 0 32px rgba(186, 26, 26, 0.3);
+  }
+
+  /* ── Language Selector Pill ─── */
+  .lang-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 200ms ease, transform 100ms ease;
+    min-height: 44px;
+  }
+
+  .lang-pill-active {
+    background-color: #4a654f;
+    color: #ffffff;
+  }
+
+  .lang-pill-inactive {
+    background-color: #e6e3d0;
+    color: #424842;
+  }
+
+  .lang-pill-inactive:hover {
+    background-color: #dddbc8;
+  }
+
+  .lang-pill:active {
+    transform: scale(0.95);
+  }
+}
+
+/* ── 4. Animation utility classes ─────────────────────────── */
+@layer utilities {
+  .animate-orb-breathe {
+    animation: orb-breathe 2.5s ease-in-out infinite;
+  }
+
+  .animate-ripple-1 {
+    animation: ripple-out 1.5s ease-out infinite;
+  }
+
+  .animate-ripple-2 {
+    animation: ripple-out 1.5s ease-out 0.5s infinite;
+  }
+
+  .animate-ripple-3 {
+    animation: ripple-out 1.5s ease-out 1.0s infinite;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  .animate-fade-up-delay {
+    animation: fade-up 0.35s cubic-bezier(0.2, 0, 0, 1) 0.08s both;
+  }
+
+  .animate-fade-up-delay-2 {
+    animation: fade-up 0.35s cubic-bezier(0.2, 0, 0, 1) 0.16s both;
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.3s ease-out both;
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 4s ease infinite;
+  }
+
+  /* Font helpers */
+  .font-manrope {
+    font-family: "Manrope", sans-serif;
+  }
+
+  .font-inter {
+    font-family: "Inter", sans-serif;
+  }
+
+  .font-mono-clinical {
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  /* Touch target enforcer */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

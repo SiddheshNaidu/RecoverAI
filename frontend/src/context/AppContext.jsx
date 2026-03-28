@@ -1,58 +1,57 @@
-/**
- * context/AppContext.jsx — Team UNTITLED | Build-it ON
- * Global state: items list, active view, PS-specific config flags.
- * PS-specific fields get filled at 12:30AM Mar 27.
- *
- * NO localStorage. All state resets on page refresh — that's fine.
- */
-
 import { createContext, useContext, useState, useCallback } from "react";
-
-// ─── PS config (fill at 12:30AM Mar 27) ────────────────────────────────────
-// Kaushik updates these after reading the PS. Controls which tabs/features show.
-export const PS_CONFIG = {
-  PROMPT_TYPE: "knowledge",      // archetype key sent to /api/process-text
-  AUDIO_ENABLED: true,           // show Audio tab in UploadPanel
-  FILE_ENABLED: false,           // show File (image) tab in UploadPanel
-  WHATSAPP_ENABLED: false,       // show WhatsApp delivery button on cards
-  PRIMARY_LABEL: "Item",         // label used in empty states + headings
-};
-
-// ─── Context ─────────────────────────────────────────────────────────────────
 
 const AppContext = createContext(null);
 
-export function AppProvider({ children }) {
-  const [items, setItems] = useState([]);        // all items from Supabase / just processed
-  const [activeItem, setActiveItem] = useState(null); // item currently in focus
-  const [view, setView] = useState("gallery");   // "gallery" | "detail" | "upload"
+// Supported languages for the Sarvam AI multilingual flow
+export const SUPPORTED_LANGUAGES = [
+  { code: "en", label: "English",    sarvam: "en-IN" },
+  { code: "hi", label: "हिन्दी",      sarvam: "hi-IN" },
+  { code: "mr", label: "मराठी",       sarvam: "mr-IN" },
+  { code: "ta", label: "தமிழ்",       sarvam: "ta-IN" },
+  { code: "te", label: "తెలుగు",      sarvam: "te-IN" },
+  { code: "kn", label: "ಕನ್ನಡ",      sarvam: "kn-IN" },
+  { code: "gu", label: "ગુજરાતી",    sarvam: "gu-IN" },
+  { code: "bn", label: "বাংলা",       sarvam: "bn-IN" },
+];
 
-  // Prepend a new item to the list (called after any process-* success)
-  const addItem = useCallback((item) => {
-    setItems((prev) => [item, ...prev]);
-    setActiveItem(item);
+export function AppProvider({ children }) {
+  // 'patient' | 'receptionist' | null
+  const [currentRole, setCurrentRole] = useState(null);
+
+  // Stores patient data when patient is logged in
+  const [currentPatient, setCurrentPatient] = useState(null);
+
+  // Global preferred language — persists across the entire app and drives
+  // Sarvam AI STT language and onboarding/check-in prompt translations.
+  const [preferredLanguage, setPreferredLanguage] =
+    useState(SUPPORTED_LANGUAGES[0]); // default: English
+
+  const login = useCallback((role, data) => {
+    setCurrentRole(role);
+    if (role === "patient") {
+      setCurrentPatient(data);
+    }
   }, []);
 
-  // Replace entire list (called after GET /api/items)
-  const setAllItems = useCallback((list) => {
-    setItems(list);
+  const logout = useCallback(() => {
+    setCurrentRole(null);
+    setCurrentPatient(null);
   }, []);
 
   const value = {
-    items,
-    activeItem,
-    view,
-    setView,
-    setActiveItem,
-    addItem,
-    setAllItems,
-    PS_CONFIG,
+    currentRole,
+    currentPatient,
+    setCurrentPatient,
+    login,
+    logout,
+    // Multilingual
+    preferredLanguage,
+    setPreferredLanguage,
+    SUPPORTED_LANGUAGES,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useApp() {
   const ctx = useContext(AppContext);

@@ -1,89 +1,83 @@
 /**
- * api/client.js — RecoverAI — All backend HTTP calls.
- * Base URL from VITE_API_URL (falls back to localhost:8000 for dev).
- * All functions throw on error for use with try/catch in hooks.
+ * Offline-first mock API client for RecoverAI
+ * Intercepts fetch requests to serve mock data while the backend is being built.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const LATENCY = 800; // Simulate network delay
 
-async function request(path, options = {}) {
-  const url = `${BASE_URL}${path}`;
-  const response = await fetch(url, {
-    headers: {
-      ...(options.body && !(options.body instanceof FormData)
-        ? { "Content-Type": "application/json" }
-        : {}),
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const MOCK_DB = {
+  patients: [
+    {
+      id: "pat_001",
+      name: "Arthur Pendelton",
+      status: "Stable",
+      risk_level: "LOW",
+      recovery_day: 4,
+      trend_direction: "up",
+      trend_delta: "+12",
+      adherence_pct: 100,
+      wound_status: "Healing well",
+      ai_insight: "Recovery is progressing faster than expected.",
+      phone: "+1 555-0102"
     },
-    ...options,
-  });
-
-  if (!response.ok) {
-    let message = `HTTP ${response.status}`;
-    try {
-      const err = await response.json();
-      message = err.detail || err.message || message;
-    } catch { /* non-JSON error body */ }
-    throw new Error(message);
+    {
+      id: "pat_002",
+      name: "Maria Gonzalez",
+      status: "Critical",
+      risk_level: "CRITICAL",
+      recovery_day: 2,
+      trend_direction: "down",
+      trend_delta: "-15",
+      adherence_pct: 60,
+      wound_status: "Redness reported",
+      ai_insight: "High pain score detected in voice logs. Intervention recommended.",
+      phone: "+1 555-0199"
+    }
+  ],
+  plan: {
+    tasks: [
+      { id: 1, title: "Take Amoxicillin 500mg", time: "8:00 AM", completed: true },
+      { id: 2, title: "Change dressing (Upload photo optional)", time: "10:00 AM", completed: false },
+      { id: 3, title: "Light walking (10 mins)", time: "2:00 PM", completed: false },
+    ],
+    medications: [
+      { name: "Amoxicillin", dosage: "500mg", frequency: "2x daily" },
+      { name: "Ibuprofen", dosage: "400mg", frequency: "As needed for pain" }
+    ]
   }
+};
 
-  if (response.status === 204) return null;
-  return response.json();
-}
+export const api = {
+  async login(role, credentials) {
+    await delay(LATENCY);
+    if (role === 'receptionist') {
+      if (credentials.password === 'admin') {
+        return { success: true, user: { name: "Sarah Jenkins", role: "receptionist", hospital: "Mercy General" }};
+      }
+      throw new Error("Invalid staff credentials");
+    }
+    
+    // Patient mock login
+    return { success: true, user: MOCK_DB.patients[0] };
+  },
 
-// ── Patients ──────────────────────────────────────────────────────────────────
+  async getPatients() {
+    await delay(LATENCY);
+    return { success: true, data: MOCK_DB.patients };
+  },
 
-export function createPatient(data) {
-  return request("/api/patients", { method: "POST", body: JSON.stringify(data) });
-}
+  async getPatientPlan(patientId) {
+    await delay(LATENCY);
+    return { success: true, data: MOCK_DB.plan };
+  },
 
-export function getPatient(patientId) {
-  return request(`/api/patients/${patientId}`);
-}
-
-export function addMedication(patientId, data) {
-  return request(`/api/patients/${patientId}/medications`, { method: "POST", body: JSON.stringify(data) });
-}
-
-export function getMedications(patientId) {
-  return request(`/api/patients/${patientId}/medications`);
-}
-
-// ── Check-ins ─────────────────────────────────────────────────────────────────
-
-export function submitCheckin(formData) {
-  return request("/api/checkins", { method: "POST", body: formData });
-}
-
-export function getCheckinHistory(patientId) {
-  return request(`/api/checkins/${patientId}`);
-}
-
-export function getTodayCheckin(patientId) {
-  return request(`/api/checkins/${patientId}/today`);
-}
-
-export function getAdaptivePlan(patientId) {
-  return request(`/api/checkins/${patientId}/plan`);
-}
-
-// ── Dashboard (Nurse) ─────────────────────────────────────────────────────────
-
-export function getTriageQueue() {
-  return request("/api/dashboard/triage");
-}
-
-export function getPatientDetail(patientId) {
-  return request(`/api/dashboard/patient/${patientId}`);
-}
-
-// ── Alerts ────────────────────────────────────────────────────────────────────
-
-export function getAlertHistory(patientId) {
-  return request(`/api/alerts/${patientId}`);
-}
-
-// ── Health ────────────────────────────────────────────────────────────────────
-
-export function checkHealth() {
-  return request("/health");
-}
+  async submitCheckin(patientId, formData) {
+    await delay(1500); // Simulate Gemini processing
+    return { 
+      success: true, 
+      ai_response: "I heard you're feeling a bit more pain today around the incision. I've updated your chart to alert the nurses, and I recommend taking your next dose of Ibuprofen early." 
+    };
+  }
+};

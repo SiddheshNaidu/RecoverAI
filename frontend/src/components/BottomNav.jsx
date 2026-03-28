@@ -1,83 +1,85 @@
-/**
- * BottomNav.jsx — Fixed mobile bottom navigation (5 tabs)
- * Stitch design: rounded-t-[2rem], backdrop-blur, teal active bubble
- * ui-ux-pro-max: 44px touch targets, cursor-pointer, smooth 200ms transitions
- */
+import { Link, useLocation } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
-import { useNavigate, useLocation } from "react-router-dom";
+export default function BottomNav() {
+  const { currentRole, currentPatient } = useApp();
+  const location = useLocation();
 
-const NAV_ITEMS = [
-  { icon: "home",       label: "Home",     path: null, key: "home" },
-  { icon: "mic",        label: "Daily Log", path: "checkin", key: "checkin" },
-  { icon: "assignment", label: "Plan",      path: null, key: "plan" },
-  { icon: "group",      label: "Team",      path: null, key: "team" },
-  { icon: "emergency",  label: "SOS",       path: null, key: "sos", emergency: true },
-];
+  if (!currentRole || ['/', '/onboard', '/login'].includes(location.pathname)) return null;
 
-/**
- * @param {{ patientId?: string, activeKey?: string }} props
- */
-export default function BottomNav({ patientId, activeKey = "home" }) {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-
-  const handlePress = (item) => {
-    if (item.key === "checkin" && patientId) {
-      navigate(`/patient/${patientId}/checkin`);
-    } else if (item.key === "home" && patientId) {
-      navigate(`/patient/${patientId}`);
-    }
-    // SOS, Plan, Team — future pages
-  };
-
-  const isActive = (item) => {
-    if (item.key === "checkin")
-      return location.pathname.includes("/checkin");
-    if (item.key === "home")
-      return !location.pathname.includes("/checkin") && location.pathname.includes("/patient/");
-    return item.key === activeKey;
-  };
+  const patientId = currentPatient?.id || 'demo-auth';
 
   return (
-    <nav
-      className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-6 pt-2 bg-surface-container-low backdrop-blur-lg rounded-t-[2rem] shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
-      aria-label="Main navigation"
-    >
-      {NAV_ITEMS.map((item) => {
-        const active = isActive(item);
-        return (
-          <button
-            key={item.key}
-            onClick={() => handlePress(item)}
-            aria-label={item.label}
-            aria-current={active ? "page" : undefined}
-            className={`
-              flex flex-col items-center justify-center p-2 min-w-[44px] min-h-[44px] cursor-pointer
-              transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded-xl
-              ${active
-                ? "bg-primary-container text-on-primary rounded-full mb-2 scale-110 shadow-card-md px-3"
-                : item.emergency
-                  ? "text-error hover:text-error/80"
-                  : "text-on-surface-variant hover:text-primary"
-              }
-            `}
-          >
-            <span
-              className={`material-symbols-outlined ${active ? "filled" : ""}`}
-              style={{
-                fontSize: 22,
-                fontVariationSettings: active ? "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" : undefined,
-              }}
-              aria-hidden="true"
+    <nav className="fixed bottom-0 left-0 right-0 z-50 nav-glass border-t border-[rgba(194,200,192,0.15)] pb-safe">
+      <div className="max-w-screen-xl mx-auto px-6 h-[68px] flex items-center justify-around">
+
+        {currentRole === 'patient' && (
+          <>
+            <NavItem
+              icon="home"
+              label="Home"
+              to={`/patient/${patientId}`}
+              active={location.pathname.startsWith('/patient') && !location.pathname.includes('/checkin')}
+            />
+            {/* Primary CTA Check-in button */}
+            <Link
+              to={`/patient/${patientId}/checkin`}
+              className="flex flex-col items-center justify-center -mt-6 cursor-pointer group min-w-[64px]"
+              aria-label="Daily Check-in"
             >
-              {item.icon}
-            </span>
-            <span className="font-label text-[10px] font-bold uppercase tracking-wide mt-0.5">
-              {item.label}
-            </span>
-          </button>
-        );
-      })}
+              <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-orb transition-transform duration-200 group-active:scale-95"
+                   style={{ background: 'linear-gradient(135deg, #4a654f, #8daa91)' }}>
+                <span className="material-symbols-outlined text-white text-[26px]" aria-hidden="true">mic</span>
+              </div>
+              <span className="text-[10px] font-inter font-semibold mt-1" style={{ color: '#4a654f' }}>
+                Check-in
+              </span>
+            </Link>
+            <NavItem
+              icon="history_edu"
+              label="Journal"
+              to="/history"
+              active={location.pathname === '/history'}
+            />
+          </>
+        )}
+
+        {currentRole === 'receptionist' && (
+          <>
+            <NavItem
+              icon="dashboard"
+              label="Dashboard"
+              to="/receptionist"
+              active={location.pathname === '/receptionist'}
+            />
+            <NavItem
+              icon="person_add"
+              label="Register"
+              to="/register-patient"
+              active={location.pathname === '/register-patient'}
+            />
+          </>
+        )}
+
+      </div>
     </nav>
+  );
+}
+
+function NavItem({ icon, label, to, active }) {
+  return (
+    <Link
+      to={to}
+      className="flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] cursor-pointer transition-colors duration-200 no-underline touch-target group"
+      style={{ color: active ? '#4a654f' : '#424842' }}
+      aria-label={label}
+    >
+      <span className="material-symbols-outlined transition-colors duration-200 text-[24px] group-hover:opacity-80" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="font-inter font-medium tracking-wide text-[10px]">
+        {label}
+      </span>
+    </Link>
   );
 }

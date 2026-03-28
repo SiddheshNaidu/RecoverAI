@@ -1,319 +1,388 @@
-/**
- * OnboardPage.jsx — Multi-step onboarding + role selector
- * Exact Match to Stitch Design: floating max-w-2xl card with segmented
- * horizontal progress bar, scrollable middle section, and fixed footer block.
- */
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { createPatient } from "../api/client";
-import { SURGERY_TYPE_KEYS, SURGERY_TYPES } from "../constants/surgeryTypes";
-
-const TOTAL_STEPS = 3;
-
-/**
- * Stitch segmented progress bar
- */
-function StepPills({ step }) {
-  return (
-    <div className="flex items-center gap-2 mt-2">
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-2 flex-1 rounded-full transition-all duration-300 ${
-            i <= step ? "bg-primary" : "bg-surface-container-high"
-          }`}
-          aria-hidden="true"
-        />
-      ))}
-    </div>
-  );
-}
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export default function OnboardPage() {
   const navigate = useNavigate();
-  const [step,     setStep]     = useState(0);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState(null);
-
-  const [form, setForm] = useState({
-    name:          "",
-    surgery_type:  "",
-    discharge_date:"",
-    caregiver_phone:"",
-    family_phone:  "",
-    language:      "English",
+  const { login, preferredLanguage } = useApp();
+  
+  const [step, setStep] = useState(1);
+  const [mode, setMode] = useState(null); // 'manual' or 'upload'
+  
+  // Comprehensive Form State for AI Generation
+  const [formData, setFormData] = useState({
+    condition: '',
+    date: '',
+    age: '',
+    gender: '',
+    activityLevel: '',
+    comorbidities: [],
+    restrictions: '',
+    supportSystem: '',
+    baselinePain: 5
   });
 
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const [manualSubStep, setManualSubStep] = useState(1);
 
-  const goNext = () => {
-    setError(null);
-    if (step < TOTAL_STEPS - 1) setStep((s) => s + 1);
+  const handleSimulateAI = (e) => {
+    e?.preventDefault();
+    setStep(3); // Processing step
+    setTimeout(() => {
+      login('patient', { id: 'demo123', name: 'Sarah Jenkins', condition: formData.condition || 'General Recovery' });
+      navigate('/patient/demo123');
+    }, 4000);
   };
 
-  const goBack = () => {
-    setError(null);
-    setStep((s) => Math.max(0, s - 1));
-  };
-
-  const goNurse = () => navigate("/dashboard");
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const patient = await createPatient({
-        ...form,
-        metadata: { language: form.language },
-      });
-      navigate(`/patient/${patient.id}`);
-    } catch (err) {
-      setError(err.message ?? "Failed to create patient. Please retry.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const nextManualStep = () => setManualSubStep(prev => prev + 1);
+  const prevManualStep = () => setManualSubStep(prev => Math.max(1, prev - 1));
 
   return (
-    <div className="min-h-screen bg-surface-container flex items-center justify-center p-4 sm:p-6 overflow-hidden relative">
-      
-      {/* Decorative blurry background elements matching Stitch style */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px] pointer-events-none" aria-hidden="true" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/10 blur-[100px] pointer-events-none" aria-hidden="true" />
-
-      <main className="w-full max-w-2xl bg-[#fdf9f5] border border-outline-variant/20 rounded-[2rem] shadow-2xl overflow-hidden relative z-10 flex flex-col">
+    <main className="min-h-screen bg-surface flex flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 overflow-hidden relative">
+      <div className="max-w-[1024px] mx-auto w-full flex flex-col flex-1 relative z-10">
         
-        {/* Progress Header */}
-        <div className="p-6 pb-0">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="font-fraunces text-2xl font-bold text-primary tracking-tight">recoverAI</h1>
-            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-              Step {step + 1} of {TOTAL_STEPS}
-            </span>
+        {/* Main Progress Bar (Only show in phase 1 or 3, hide during manual wizard to avoid confusion) */}
+        {(step === 1 || step === 3 || mode === 'upload') && (
+          <div className="w-full flex items-center gap-2 mb-16 lg:mb-24 animate-fade-up">
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i} 
+                className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                  step >= i ? 'bg-primary flex-1' : 'bg-surface-high w-16'
+                }`}
+              />
+            ))}
           </div>
-          <StepPills step={step} />
-        </div>
+        )}
 
-        {/* Scrollable Step Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 200px)" }}>
+        <div className="flex-1 flex flex-col justify-center">
           
-          {/* ── STEP 0: Surgery type ───────────────────────────────── */}
-          {step === 0 && (
-             <div className="space-y-6">
-              <div>
-                <h2 className="font-fraunces text-2xl font-bold text-on-surface mb-2">Surgery Details</h2>
-                <p className="text-on-surface-variant text-sm mb-6">Let's set up your personalized recovery timeline.</p>
-              </div>
-
-              {/* Surgery Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {SURGERY_TYPE_KEYS.map((key) => {
-                  const s = SURGERY_TYPES[key];
-                  const sel = form.surgery_type === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => set("surgery_type", key)}
-                      className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                        sel 
-                          ? "border-primary bg-primary-container/10 text-primary" 
-                          : "border-outline-variant/20 bg-white hover:border-primary/50 hover:bg-surface-container text-on-surface-variant"
-                      }`}
-                    >
-                      <span className={`material-symbols-outlined text-4xl mb-3 ${sel ? "filled" : ""}`} style={{ fontVariationSettings: sel ? "'FILL' 1" : "'FILL' 0" }}>
-                        {s.icon}
-                      </span>
-                      <span className={`font-bold ${sel ? "text-primary" : "text-on-surface"}`}>{s.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-4 bg-white p-5 rounded-2xl border border-outline-variant/20 shadow-sm mt-6">
-                <div className="space-y-1.5">
-                  <label htmlFor="patient-name" className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">person</span>
-                    <input
-                      id="patient-name"
-                      type="text"
-                      placeholder="e.g. Ramesh Patil"
-                      value={form.name}
-                      onChange={(e) => set("name", e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="discharge-date" className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-                    Discharge Date
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">event</span>
-                    <input
-                      id="discharge-date"
-                      type="date"
-                      value={form.discharge_date}
-                      onChange={(e) => set("discharge_date", e.target.value)}
-                      max={new Date().toISOString().split("T")[0]}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 1: Family caregiver ───────────────────────────── */}
+          {/* STEP 1: Select Mode */}
           {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="font-fraunces text-2xl font-bold text-on-surface mb-2">Caregiver Setup</h2>
-                <p className="text-on-surface-variant text-sm mb-6">Add contacts to keep your family updated on your recovery.</p>
-              </div>
-
-              <div className="space-y-4 bg-white p-5 rounded-2xl border border-outline-variant/20 shadow-sm mt-6">
-                <div className="space-y-1.5">
-                  <label htmlFor="caregiver-phone" className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-                    Caregiver WhatsApp
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">phone_iphone</span>
-                    <input
-                      id="caregiver-phone"
-                      type="tel"
-                      placeholder="+91 90000 00000"
-                      value={form.caregiver_phone}
-                      onChange={(e) => set("caregiver_phone", e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                    />
+            <section className="animate-fade-up">
+              <h1 className="font-heading text-[2.5rem] md:text-[4rem] leading-[1.1] tracking-tight text-ink mb-12 lg:mb-16">
+                How should we build <br/>
+                <span className="text-primary italic">your recovery plan?</span>
+              </h1>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                {/* Smart Upload */}
+                <button
+                  onClick={() => { setMode('upload'); setStep(2); }}
+                  className="group flex flex-col p-10 md:p-12 bg-white rounded-[2rem] text-left transition-all duration-300 hover:shadow-ambient hover:-translate-y-2 touch-target border-0 cursor-pointer"
+                >
+                  <div className="w-14 h-14 rounded-full bg-surface-low flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-primary-fixed transition-all duration-300">
+                    <span className="material-symbols-outlined text-primary text-[28px]">document_scanner</span>
                   </div>
-                </div>
+                  <h2 className="font-heading text-[1.75rem] md:text-[2rem] font-medium text-ink mb-3">
+                    Smart Analysis
+                  </h2>
+                  <p className="font-inter text-ink-muted text-base md:text-lg">
+                    Upload your hospital discharge summary. Gemini will extract everything automatically.
+                  </p>
+                </button>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="family-phone" className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-                    Your Phone Number
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">smartphone</span>
-                    <input
-                      id="family-phone"
-                      type="tel"
-                      placeholder="+91 80000 00000"
-                      value={form.family_phone}
-                      onChange={(e) => set("family_phone", e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                    />
+                {/* Manual Setup */}
+                <button
+                  onClick={() => { setMode('manual'); setStep(2); }}
+                  className="group flex flex-col p-10 md:p-12 bg-surface-high rounded-[2rem] text-left transition-all duration-300 hover:bg-[#dfdcc8] hover:-translate-y-2 touch-target border-0 cursor-pointer"
+                >
+                  <div className="w-14 h-14 rounded-full bg-white/50 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-white transition-all duration-300">
+                    <span className="material-symbols-outlined text-ink text-[28px]">assignment</span>
                   </div>
-                </div>
+                  <h2 className="font-heading text-[1.75rem] md:text-[2rem] font-medium text-ink mb-3">
+                    Guided Interview
+                  </h2>
+                  <p className="font-inter text-ink-muted text-base md:text-lg">
+                    Answer a comprehensive clinical questionnaire to build your highly personalized profile.
+                  </p>
+                </button>
               </div>
-              <p className="text-xs text-center text-on-surface-variant italic">Both numbers are optional right now.</p>
-            </div>
+            </section>
           )}
 
-          {/* ── STEP 2: Language + Confirm ─────────────────────────── */}
-          {step === 2 && (
-             <div className="space-y-6">
-              <div>
-                <h2 className="font-fraunces text-2xl font-bold text-on-surface mb-2">Communication</h2>
-                <p className="text-on-surface-variant text-sm mb-6">Select your preferred language for daily check-ins.</p>
+          {/* STEP 2: Comprehensive Manual Interview (Wizard) */}
+          {step === 2 && mode === 'manual' && (
+            <section className="w-full max-w-3xl mx-auto flex flex-col h-full justify-center animate-fade-up">
+              
+              {/* Wizard Progress Mini */}
+              <div className="flex items-center gap-2 mb-12">
+                {[1, 2, 3, 4].map(idx => (
+                  <div key={idx} className={`h-1 flex-1 rounded-full transition-colors duration-500 ${manualSubStep >= idx ? 'bg-primary' : 'bg-surface-high'}`} />
+                ))}
               </div>
 
-               <div className="flex flex-wrap gap-3">
-                {["English", "Hindi", "Marathi", "Telugu", "Tamil"].map((lang) => {
-                  const sel = form.language === lang;
-                  return (
-                    <button
-                      key={lang}
-                      onClick={() => set("language", lang)}
-                      className={`px-5 py-2.5 rounded-full text-sm font-bold cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-primary outline-none tracking-wide ${
-                        sel 
-                          ? "bg-primary text-white shadow-md" 
-                          : "bg-white border border-outline-variant/20 text-on-surface hover:bg-surface-container hover:border-outline-variant/40 shadow-sm"
-                      }`}
-                    >
-                      {lang}
-                    </button>
-                  );
-                })}
-              </div>
+              <div className="min-h-[400px] flex flex-col justify-center">
+                
+                {/* SubStep 1: The Core Event */}
+                {manualSubStep === 1 && (
+                  <div className="animate-fade-up flex flex-col gap-10">
+                    <div>
+                      <h2 className="font-heading text-[2rem] md:text-[3rem] tracking-tight text-ink mb-4 leading-tight">
+                        What brings you to <br/><span className="text-primary italic">RecoverAI?</span>
+                      </h2>
+                      <p className="font-inter text-ink-muted text-lg">Your primary diagnosis dictates the foundation of your protocol.</p>
+                    </div>
 
-              {form.surgery_type && (
-                <div className="mt-8 bg-secondary-container/20 border border-secondary-container/40 p-5 rounded-2xl text-center">
-                  <span className="material-symbols-outlined text-secondary text-4xl mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                  <h3 className="font-fraunces text-lg font-semibold text-on-surface mb-1">Ready for Recovery</h3>
-                  <p className="text-on-surface-variant text-sm px-4">Your personalized AI check-in flow for {SURGERY_TYPES[form.surgery_type]?.label} is beautifully prepared.</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mt-6 p-4 bg-error-container/50 border border-error/20 rounded-xl flex items-center gap-3">
-              <span className="material-symbols-outlined text-error">error</span>
-              <p className="text-sm text-error font-medium">{error}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Fixed Footer */}
-        <div className="p-6 bg-white border-t border-outline-variant/20 flex flex-col sm:flex-row gap-3 mt-auto shrink-0">
-          
-          <button
-             onClick={goNurse}
-             className="w-full sm:w-auto px-5 py-4 border border-outline-variant/30 text-on-surface-variant font-bold rounded-xl hover:bg-surface-container transition-all flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-primary order-2 sm:order-1"
-             aria-label="Switch to Nurse Dashboard"
-          >
-            I'm a Nurse
-          </button>
-
-          <div className="flex-1 flex gap-3 order-1 sm:order-2">
-            {step > 0 && (
-              <button
-                onClick={goBack}
-                className="flex-1 sm:flex-none px-6 py-4 bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-bold rounded-xl hover:bg-surface-container transition-all flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm"
-              >
-                Back
-              </button>
-            )}
-
-            {step < TOTAL_STEPS - 1 ? (
-              <button
-                onClick={goNext}
-                disabled={step === 0 && (!form.surgery_type || !form.name || !form.discharge_date)}
-                className="flex-[2] py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Continue
-                <span className="material-symbols-outlined text-xl">arrow_forward</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                 className="flex-[2] py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary outline-none disabled:opacity-50 disabled:cursor-wait"
-              >
-                {loading ? (
-                  <>
-                    <span className="material-symbols-outlined animate-spin" aria-hidden="true">progress_activity</span>
-                    Processing
-                  </>
-                ) : (
-                  <>
-                    Start Recovery
-                    <span className="material-symbols-outlined text-xl">check_circle</span>
-                  </>
+                    <div className="flex flex-col gap-8">
+                      <div className="flex flex-col gap-3">
+                        <label className="font-heading text-lg font-bold text-ink">Primary Condition or Surgery</label>
+                        <input 
+                          type="text" 
+                          autoFocus
+                          value={formData.condition}
+                          onChange={e => setFormData({...formData, condition: e.target.value})}
+                          placeholder="e.g., Total Knee Replacement, Bypass Surgery"
+                          className="w-full p-4 md:p-5 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter text-lg"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <label className="font-heading text-lg font-bold text-ink">Date of Procedure / Discharge</label>
+                        <input 
+                          type="date" 
+                          value={formData.date}
+                          onChange={e => setFormData({...formData, date: e.target.value})}
+                          className="w-full p-4 md:p-5 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter text-lg text-ink"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </button>
-            )}
-          </div>
-        </div>
 
-      </main>
-    </div>
+                {/* SubStep 2: Demographics & Baseline */}
+                {manualSubStep === 2 && (
+                  <div className="animate-fade-up flex flex-col gap-10">
+                    <div>
+                      <h2 className="font-heading text-[2rem] md:text-[3rem] tracking-tight text-ink mb-4 leading-tight">
+                        Tell us about <br/><span className="text-primary italic">yourself.</span>
+                      </h2>
+                      <p className="font-inter text-ink-muted text-lg">A 30-year-old athlete recovers differently than a 75-year-old.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-8">
+                      <div className="flex gap-4">
+                        <div className="flex-1 flex flex-col gap-3">
+                          <label className="font-heading text-lg font-bold text-ink">Age</label>
+                          <input type="number" placeholder="Years" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-lg" />
+                        </div>
+                        <div className="flex-1 flex flex-col gap-3">
+                          <label className="font-heading text-lg font-bold text-ink">Gender</label>
+                          <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-lg bg-none">
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3">
+                        <label className="font-heading text-lg font-bold text-ink">Prior Activity Level</label>
+                        <div className="grid grid-cols-3 gap-4">
+                          {['Sedentary', 'Moderate', 'Athletic'].map(level => (
+                            <button 
+                              key={level}
+                              onClick={() => setFormData({...formData, activityLevel: level})}
+                              className={`p-4 rounded-xl border text-center transition-all ${formData.activityLevel === level ? 'bg-primary/5 border-primary text-primary font-bold' : 'bg-white border-outline-variant/30 text-ink hover:border-primary/50'}`}
+                            >
+                              {level}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SubStep 3: Medical Context */}
+                {manualSubStep === 3 && (
+                  <div className="animate-fade-up flex flex-col gap-10">
+                    <div>
+                      <h2 className="font-heading text-[2rem] md:text-[3rem] tracking-tight text-ink mb-4 leading-tight">
+                        Medical <span className="text-primary italic">context.</span>
+                      </h2>
+                      <p className="font-inter text-ink-muted text-lg">These details prevent AI from suggesting unsafe exercises or diets.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-8">
+                      <div className="flex flex-col gap-3">
+                        <label className="font-heading text-lg font-bold text-ink">Existing Conditions (Comorbidities)</label>
+                        <div className="flex flex-wrap gap-3">
+                          {['Diabetes', 'Hypertension', 'Heart Disease', 'Asthma', 'Osteoporosis', 'None'].map(condition => {
+                            const isSelected = formData.comorbidities.includes(condition);
+                            return (
+                              <button 
+                                key={condition}
+                                onClick={() => {
+                                  if (condition === 'None') setFormData({...formData, comorbidities: ['None']});
+                                  else {
+                                    const next = isSelected ? formData.comorbidities.filter(c => c !== condition) : [...formData.comorbidities.filter(c=>c!=='None'), condition];
+                                    setFormData({...formData, comorbidities: next});
+                                  }
+                                }}
+                                className={`px-5 py-2.5 rounded-full border transition-all ${isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-white border-outline-variant/30 text-ink hover:border-primary/50'}`}
+                              >
+                                {condition}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3">
+                        <label className="font-heading text-lg font-bold text-ink">Explicit Doctor Restrictions</label>
+                        <textarea 
+                          value={formData.restrictions}
+                          onChange={e => setFormData({...formData, restrictions: e.target.value})}
+                          placeholder="e.g., Non-weight bearing for 2 weeks, no lifting over 10 lbs..."
+                          className="w-full p-4 md:p-5 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter text-lg min-h-[100px] resize-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SubStep 4: Status & Support */}
+                {manualSubStep === 4 && (
+                  <div className="animate-fade-up flex flex-col gap-10">
+                    <div>
+                      <h2 className="font-heading text-[2rem] md:text-[3rem] tracking-tight text-ink mb-4 leading-tight">
+                        Current <span className="text-primary italic">status.</span>
+                      </h2>
+                      <p className="font-inter text-ink-muted text-lg">Establish your baseline so we can track improvement.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-8">
+                      
+                      <div className="flex flex-col gap-4">
+                        <div className="flex justify-between">
+                          <label className="font-heading text-lg font-bold text-ink">Baseline Pain Level</label>
+                          <span className="font-inter font-bold text-primary text-xl">{formData.baselinePain}/10</span>
+                        </div>
+                        <input 
+                          type="range" min="0" max="10" 
+                          value={formData.baselinePain}
+                          onChange={e => setFormData({...formData, baselinePain: parseInt(e.target.value)})}
+                          className="w-full accent-primary"
+                        />
+                        <div className="flex justify-between text-xs font-inter text-ink-muted font-medium uppercase tracking-widest">
+                          <span>0 - None</span>
+                          <span className="text-error">10 - Severe</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3">
+                        <label className="font-heading text-lg font-bold text-ink">Caregiver Support</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {[
+                            { id: 'full', label: 'Full Support', desc: 'Someone is with me 24/7' },
+                            { id: 'partial', label: 'Partial Support', desc: 'Someone checks on me daily' },
+                            { id: 'alone', label: 'Living Alone', desc: 'I am managing entirely alone' }
+                          ].map(sup => (
+                            <button 
+                              key={sup.id}
+                              onClick={() => setFormData({...formData, supportSystem: sup.id})}
+                              className={`p-5 rounded-2xl border text-left transition-all ${formData.supportSystem === sup.id ? 'bg-primary/5 border-primary shadow-sm' : 'bg-white border-outline-variant/30 hover:border-primary/50'}`}
+                            >
+                              <div className={`font-heading font-bold text-lg mb-1 ${formData.supportSystem === sup.id ? 'text-primary' : 'text-ink'}`}>{sup.label}</div>
+                              <div className="font-inter text-sm text-ink-muted">{sup.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="flex justify-between items-center mt-12 pt-8 border-t border-[rgba(194,200,192,0.15)]">
+                <button 
+                  type="button" 
+                  onClick={() => manualSubStep === 1 ? setStep(1) : prevManualStep()} 
+                  className="font-inter text-ink font-medium hover:text-primary transition-colors px-4 py-2 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  Back
+                </button>
+                
+                {manualSubStep < 4 ? (
+                  <button 
+                    type="button"
+                    disabled={manualSubStep === 1 && !formData.condition}
+                    onClick={nextManualStep} 
+                    className="btn-secondary px-8 py-3 disabled:opacity-50"
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleSimulateAI} 
+                    className="btn-gradient px-8 py-4 text-lg shadow-orb animate-pulse-slow"
+                  >
+                    Generate AI Protocol
+                    <span className="material-symbols-outlined ml-2">auto_awesome</span>
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* STEP 2: Smart Upload */}
+          {step === 2 && mode === 'upload' && (
+            <section className="animate-fade-up w-full max-w-2xl mx-auto text-center">
+              <h2 className="font-heading text-[2.5rem] md:text-[3rem] tracking-tight text-ink mb-4">
+                Discharge Summary
+              </h2>
+              <p className="font-inter text-ink-muted text-lg mb-10">
+                Let Gemini extract your diagnosis, medications, and restrictions instantly.
+              </p>
+              
+              <div className="border-2 border-dashed border-primary/30 rounded-[2rem] p-12 md:p-20 flex flex-col items-center justify-center bg-white/50 hover:bg-white hover:border-primary/60 transition-colors duration-300 cursor-pointer group">
+                <div className="w-24 h-24 bg-surface-low rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary-fixed transition-all duration-500 shadow-sm">
+                  <span className="material-symbols-outlined text-primary text-[48px]">cloud_upload</span>
+                </div>
+                <h3 className="font-heading text-2xl font-bold text-ink mb-2">Tap to browse files</h3>
+                <p className="font-inter text-ink-muted">PDF, JPG, or PNG from your hospital</p>
+              </div>
+
+              <div className="flex justify-between items-center mt-12">
+                <button type="button" onClick={() => setStep(1)} className="font-inter text-ink font-medium hover:text-primary transition-colors px-4 py-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back
+                </button>
+                <button onClick={handleSimulateAI} className="btn-gradient px-10 py-4 text-lg">
+                  Submit to AI
+                  <span className="material-symbols-outlined ml-2">auto_awesome</span>
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* STEP 3: Processing */}
+          {step === 3 && (
+            <section className="flex flex-col items-center justify-center text-center animate-fade-up h-[50vh]">
+              <div className="w-32 h-32 rounded-full bg-primary-fixed flex items-center justify-center mb-10 animate-orb-breathe shadow-orb relative">
+                <div className="absolute inset-0 rounded-full border-[6px] border-primary/20 border-t-primary animate-spin" />
+                <span className="material-symbols-outlined text-primary text-[48px]">
+                  neurology
+                </span>
+              </div>
+              <h2 className="font-heading text-[2.5rem] md:text-[3rem] tracking-tight text-ink mb-4 max-w-lg mx-auto leading-tight">
+                Synthesizing Protocol
+              </h2>
+              <p className="font-inter text-ink-muted text-lg max-w-md mx-auto leading-relaxed">
+                Gemini is securely reading your massive medical profile to tailor a highly specific, adaptive daily recovery plan.
+              </p>
+            </section>
+          )}
+
+        </div>
+      </div>
+      
+      {/* Ambient background blur for wizard focus */}
+      {step === 2 && mode === 'manual' && (
+         <div className="fixed top-[-50%] left-[-10%] w-[100vw] h-[100vh] bg-[radial-gradient(ellipse_at_top_left,_rgba(141,170,145,0.15),_transparent_70%)] pointer-events-none -z-10" />
+      )}
+    </main>
   );
 }
