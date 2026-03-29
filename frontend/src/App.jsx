@@ -10,6 +10,7 @@ import TopNav from "./components/TopNav";
 // ── Patient flow ──────────────────────────────────────────────────────────
 const LandingPage       = lazy(() => import("./pages/LandingPage"));
 const OnboardPage       = lazy(() => import("./pages/OnboardPage"));
+const PatientLoginPage  = lazy(() => import("./pages/PatientLoginPage"));
 const PatientHomePage   = lazy(() => import("./pages/PatientHomePage"));
 const RecoveryPlanPage  = lazy(() => import("./pages/RecoveryPlanPage"));
 const CheckinPage       = lazy(() => import("./pages/CheckinPage"));
@@ -46,6 +47,7 @@ export default function App() {
 
                 {/* Patient flow */}
                 <Route path="/onboard"                   element={<OnboardPage />} />
+                <Route path="/patient-login"             element={<PatientLoginPage />} />
                 <Route path="/patient/:id"               element={<PatientHomePage />} />
                 <Route path="/patient/:id/plan"          element={<RecoveryPlanPage />} />
                 <Route path="/patient/:id/checkin"       element={<CheckinPage />} />

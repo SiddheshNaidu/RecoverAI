@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecoverAI | Receptionist Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "primary-container": "#8daa91",
+                        "inverse-on-surface": "#f4f1de",
+                        "on-surface": "#1c1c11",
+                        "secondary-container": "#e6e3d0",
+                        "primary": "#4a654f",
+                        "on-primary-container": "#253f2b",
+                        "tertiary-fixed": "#c7e7ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#ece9d6",
+                        "secondary-fixed": "#e6e3d0",
+                        "primary-fixed": "#cceacf",
+                        "inverse-surface": "#313124",
+                        "tertiary-fixed-dim": "#98cdf2",
+                        "on-secondary-container": "#666556",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#062010",
+                        "surface-container": "#f1eedb",
+                        "on-tertiary-container": "#003d59",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#064c6b",
+                        "secondary": "#605f50",
+                        "surface-bright": "#fdfae7",
+                        "tertiary-container": "#74a9cd",
+                        "on-error": "#ffffff",
+                        "tertiary": "#2b6485",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#48473a",
+                        "outline": "#737972",
+                        "surface-tint": "#4a654f",
+                        "surface-container-highest": "#e6e3d0",
+                        "secondary-fixed-dim": "#c9c7b5",
+                        "on-surface-variant": "#424842",
+                        "background": "#fdfae7",
+                        "surface-variant": "#e6e3d0",
+                        "surface-container-low": "#f7f4e1",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#b0ceb4",
+                        "outline-variant": "#c2c8c0",
+                        "on-secondary-fixed": "#1c1c11",
+                        "inverse-primary": "#b0ceb4",
+                        "surface-dim": "#dddbc8",
+                        "surface": "#fdfae7",
+                        "on-tertiary-fixed": "#001e2e",
+                        "on-primary-fixed-variant": "#334d38",
+                        "on-background": "#1c1c11"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fdfae7;
+            color: #1c1c11;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="bg-white/70 dark:bg-stone-900/70 backdrop-blur-xl docked full-width top-0 sticky z-50 no-border-tonal-shift bg-stone-50/50 dark:bg-stone-950/50">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-bold tracking-tight text-emerald-900 dark:text-emerald-100 font-headline">RecoverAI</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-emerald-700 dark:text-emerald-300 font-semibold border-b-2 border-emerald-600 dark:border-emerald-400 pb-1 font-manrope font-medium text-sm tracking-wide" href="#">Patients</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-emerald-600 font-manrope font-medium text-sm tracking-wide transition-colors duration-300" href="#">Staff</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-emerald-600 font-manrope font-medium text-sm tracking-wide transition-colors duration-300" href="#">Resources</a>
+</div>
+<div class="flex items-center space-x-4">
+<button class="p-2 rounded-full hover:bg-stone-100/50 dark:hover:bg-stone-800/50 transition-colors duration-300">
+<span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-stone-100/50 dark:hover:bg-stone-800/50 transition-colors duration-300">
+<span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full overflow-hidden bg-secondary-container">
+<img alt="User profile" class="h-full w-full object-cover" data-alt="professional portrait of a friendly female clinic receptionist with a warm smile in a brightly lit office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6tIyzsW7wo7YRWD68tIiEAk2YVJwX1za7tPrEbWWorWgcvvbPXqoUNEe7KxYTu5FJ6TMTT2SyCiKGM1m0aPrSk-0F_Dh0gtJcG2YmyZGC_VnCWXzhEFyf-PIsscz-O7Vdyl42i2rFwPsYGokwjx0a3WT8otke-LWiyFKN0QaxFzwbnHk73Rs_uCY-m3bex1tpxhXc2MjKsHCcj_QWAoULeIySZaxaVFG40dO-mGwAx-ejG-ar9WYccWxzqLZA-JBNnb8bgKEfHoY"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-12 pb-32">
+<!-- Header & Action -->
+<header class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+<div class="space-y-2">
+<p class="text-primary font-medium tracking-[0.2em] uppercase text-xs">Morning, Sarah</p>
+<h1 class="font-headline text-5xl font-bold text-on-surface tracking-tight">Clinic Dashboard</h1>
+</div>
+<button class="flex items-center gap-3 px-8 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 group">
+<span class="material-symbols-outlined">person_add</span>
+<span class="font-semibold">+ Register New Patient</span>
+</button>
+</header>
+<!-- Summary Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+<!-- Active Card -->
+<div class="bg-surface-container-low p-8 rounded-xl border border-outline-variant/10 relative overflow-hidden group">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary mb-4 text-3xl">patient_list</span>
+<h3 class="text-on-surface-variant font-medium text-sm mb-1 uppercase tracking-widest">Active Patients</h3>
+<div class="text-4xl font-bold font-headline text-on-surface">142</div>
+<div class="mt-4 flex items-center gap-2 text-primary text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+12 from yesterday</span>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-9xl">healing</span>
+</div>
+</div>
+<!-- Attention Card -->
+<div class="bg-surface-container-high p-8 rounded-xl border border-outline-variant/10 relative overflow-hidden group">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-error mb-4 text-3xl">priority_high</span>
+<h3 class="text-on-surface-variant font-medium text-sm mb-1 uppercase tracking-widest">Needs Attention</h3>
+<div class="text-4xl font-bold font-headline text-on-surface">08</div>
+<div class="mt-4 flex items-center gap-2 text-error text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span>3 critical alerts</span>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-9xl">notifications_active</span>
+</div>
+</div>
+<!-- Appointments Card -->
+<div class="bg-surface-container-low p-8 rounded-xl border border-outline-variant/10 relative overflow-hidden group">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-tertiary mb-4 text-3xl">calendar_today</span>
+<h3 class="text-on-surface-variant font-medium text-sm mb-1 uppercase tracking-widest">Daily Appointments</h3>
+<div class="text-4xl font-bold font-headline text-on-surface">24</div>
+<div class="mt-4 flex items-center gap-2 text-tertiary text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>8 slots remaining</span>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-9xl">event</span>
+</div>
+</div>
+</section>
+<!-- Main Content Area (Asymmetric Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left: Patient Cards List (2/3 width) -->
+<div class="lg:col-span-8 space-y-8">
+<div class="flex items-center justify-between">
+<h2 class="font-headline text-2xl font-bold text-on-surface">Patient Status</h2>
+<div class="flex gap-2">
+<span class="px-4 py-2 bg-surface-container-highest rounded-full text-xs font-medium text-on-surface-variant cursor-pointer">All</span>
+<span class="px-4 py-2 hover:bg-surface-container-highest rounded-full text-xs font-medium text-on-surface-variant cursor-pointer transition-colors">Risk Level</span>
+<span class="px-4 py-2 hover:bg-surface-container-highest rounded-full text-xs font-medium text-on-surface-variant cursor-pointer transition-colors">Post-Op</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Patient Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-outline-variant/10 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-secondary-container">
+<img alt="Patient" class="w-full h-full object-cover" data-alt="middle-aged woman with glasses and short hair, neutral expression, medical profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfxBgzJF8Ip3E9wR8H80LXlSVGWVtqXRecWCQniC4b0_mOdInWcXHSmC1c72VV1bYzFMStI6Nco52dkoVCcCDWYYpBCd2JlcKlSF0BYFMrs0EYsqRfOFQnAkzi0f4S-dTpj2KK-rwlaplv_4LAJNG6w4LUDaIQ_fCOQzGFN0zrZPDFXDXxwLrAZLv6ScomqzndxNdKcORdlpAI1ryzOI3WTzkQ_iLBtsMO7qBSim0arD01qnuljxj6VRKtuncWYMZLcqHf2rSziaw"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Elena Rodriguez</h4>
+<p class="text-xs text-on-surface-variant">ID: #RE-4012</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold uppercase tracking-wider">Low Risk</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/5">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Surgery</span>
+<span class="font-medium text-on-surface">Hip Replacement</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Post-Op Day</span>
+<span class="font-medium text-on-surface">Day 14</span>
+</div>
+</div>
+</div>
+<!-- Patient Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-outline-variant/10 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-secondary-container">
+<img alt="Patient" class="w-full h-full object-cover" data-alt="senior man with grey beard, kind eyes, professional studio lighting, portrait photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwutBkNkm3oaMYZspRQ-EA604MRyXFrBmR8DTleu_QzRjFWg7fRbvxGWo52sXqhXXI817b953j93jiCiHMZv4BDHR7301d5lx5foO0mzkq752XEwDqlSsZ0kB2CWQykUW5wqxpPAgV4-9T2T6uoLG608-lIuMdUID3HK3eAXsLiaM7BAeai3_h9uBIUUK4lzW0XDhMcPAbkW6GX25qLqU3d2HU_3uBIzGthUXEIgSTxFLg8zYsUEY5Fx_go8iyUp4bcEz_Lt-VNDo"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">James Wilson</h4>
+<p class="text-xs text-on-surface-variant">ID: #JW-9821</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-[10px] font-bold uppercase tracking-wider">Moderate Risk</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/5">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Surgery</span>
+<span class="font-medium text-on-surface">Knee Arthroscopy</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Post-Op Day</span>
+<span class="font-medium text-on-surface">Day 3</span>
+</div>
+</div>
+</div>
+<!-- Patient Card 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-outline-variant/10 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-secondary-container">
+<img alt="Patient" class="w-full h-full object-cover" data-alt="young male patient with a focused expression, natural daylight, soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5EH_N1MGYyd8f29uArLud86ykw1SC3_NMf0PXDx8U5FlWBvWdSGc53GmeBB4RQfUsM0bbU18hdqDt76WnsXRgDOmtWPGlu3fdpKDWf8TrkUjecF8n-fMHoc3IPBvhGR6eCxU6iKhkV4eQEKD_Lz4eN2duP5esiKW9ucXF-AWM_V05ruxGoI5QJM7xZo0yWNZuj4OIIPorciMr8eHTEQtVhg7kdcSgmfbMlxRUVa0uCrFtyKDOJnChBDbGDUwDlTMprrDP_Kg4dpI"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Marcus Chen</h4>
+<p class="text-xs text-on-surface-variant">ID: #MC-2234</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-[10px] font-bold uppercase tracking-wider">High Risk</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/5">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Surgery</span>
+<span class="font-medium text-on-surface">Spinal Fusion</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Post-Op Day</span>
+<span class="font-medium text-on-surface">Day 1</span>
+</div>
+</div>
+</div>
+<!-- Patient Card 4 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-outline-variant/10 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-secondary-container">
+<img alt="Patient" class="w-full h-full object-cover" data-alt="confident black woman with curly hair, elegant and calm presence, clinical setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcS1hLlDJOI1yrCxUHaWcHQahhCyJcLcRsjq98ulsA2KVp8MqP8TRebooGXonpLY8qrcltCzeT6KNyjHVrGeTS9sm_g5Ry7gNHgpyvBqCO_Q9qMRzgKpG6Fu4u4KSt3cZRDzwF0KcKpkG8r_wGAc_3v5xae8yyzhayj-ESgob8wHqNLS54e2aomqv4izIFCmXFE_AJwv-OqYNgzHohKccTh1jPbckdQye49WTTlgt99UOeKKTaoO0sQz0v4Z_k8c12tyD9Libv6Tw"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Sarah Jenkins</h4>
+<p class="text-xs text-on-surface-variant">ID: #SJ-1109</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold uppercase tracking-wider">Low Risk</div>
+</div>
+<div class="space-y-3 pt-4 border-t border-outline-variant/5">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Surgery</span>
+<span class="font-medium text-on-surface">Shoulder Repair</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Post-Op Day</span>
+<span class="font-medium text-on-surface">Day 45</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Upcoming Appointments (1/3 width) -->
+<div class="lg:col-span-4 space-y-8">
+<div class="bg-surface-container-low rounded-xl p-8 sticky top-32">
+<h2 class="font-headline text-2xl font-bold text-on-surface mb-8">Up Next</h2>
+<div class="space-y-6">
+<!-- Appointment Item -->
+<div class="flex gap-4 relative">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-primary mt-1.5"></div>
+<div class="w-0.5 h-full bg-outline-variant/20 absolute top-5 left-[5.5px]"></div>
+</div>
+<div class="pb-6">
+<p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">09:30 AM</p>
+<h5 class="font-semibold text-on-surface">Dr. Aris Thorne</h5>
+<p class="text-sm text-on-surface-variant">Check-up: Robert Gable</p>
+</div>
+</div>
+<!-- Appointment Item -->
+<div class="flex gap-4 relative">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-tertiary mt-1.5"></div>
+<div class="w-0.5 h-full bg-outline-variant/20 absolute top-5 left-[5.5px]"></div>
+</div>
+<div class="pb-6">
+<p class="text-xs font-bold text-tertiary uppercase tracking-widest mb-1">10:15 AM</p>
+<h5 class="font-semibold text-on-surface">Physical Therapy</h5>
+<p class="text-sm text-on-surface-variant">Session: Emily Vance</p>
+</div>
+</div>
+<!-- Appointment Item -->
+<div class="flex gap-4 relative">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-outline-variant mt-1.5"></div>
+<div class="w-0.5 h-full bg-outline-variant/20 absolute top-5 left-[5.5px]"></div>
+</div>
+<div class="pb-6">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">11:00 AM</p>
+<h5 class="font-semibold text-on-surface">Nurse Consultation</h5>
+<p class="text-sm text-on-surface-variant">Vitals: Marcus Chen</p>
+</div>
+</div>
+<!-- Appointment Item -->
+<div class="flex gap-4 relative">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-outline-variant mt-1.5"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">11:45 AM</p>
+<h5 class="font-semibold text-on-surface">Post-Op Review</h5>
+<p class="text-sm text-on-surface-variant">Dr. Sarah Miller</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-10 py-3 text-sm font-semibold text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors">
+                        View Full Schedule
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-stone-50 dark:bg-stone-950 z-50 rounded-t-[2rem] shadow-[0_-4px_20px_0_rgba(28,28,17,0.04)]">
+<a class="flex flex-col items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 rounded-2xl px-5 py-2 transform scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-emerald-300" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-emerald-300" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-emerald-300" href="#">
+<span class="material-symbols-outlined">emergency</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">SOS</span>
+</a>
+</nav>
+</body></html>

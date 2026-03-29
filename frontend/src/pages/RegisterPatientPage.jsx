@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import supabase, { isSupabaseConfigured } from "../api/db";
+import { createPatientWithPlan } from "../api/client";
 
 const SURGERY_TYPES = [
   { id: "appendectomy", label: "Appendectomy", icon: "monitoring" },
@@ -30,6 +31,7 @@ export default function RegisterPatientPage() {
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    patientPin: "",
     surgeryType: "",
     dischargeDate: "",
     caregiverPhone: "",
@@ -56,60 +58,33 @@ export default function RegisterPatientPage() {
     }));
 
   async function persistPatient() {
-    if (!isSupabaseConfigured() || !supabase) {
-      throw new Error("Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY");
-    }
+    const meds = form.medications
+      .map((m) => m.trim())
+      .filter(Boolean)
+      .map((name) => ({ name, frequency: "", critical: false }));
+    const res = await createPatientWithPlan({
+      name: form.name.trim(),
+      patient_phone: form.phone.trim(),
+      patient_pin: form.patientPin,
+      surgery_type: form.surgeryType,
+      discharge_date: form.dischargeDate || null,
+      caregiver_phone: form.caregiverPhone.trim() || null,
+      language_preference: "en",
+      medications: meds,
+      special_instructions: form.instructions || "",
+    });
+    const patientId = res?.patient?.id;
+    if (!patientId) throw new Error("Patient creation failed.");
 
-    const surgeryLabel =
-      SURGERY_TYPES.find((s) => s.id === form.surgeryType)?.label || form.surgeryType || "Procedure";
-
-    const { data: inserted, error: pErr } = await supabase
-      .from("patients")
-      .insert([
-        {
-          name: form.name.trim(),
-          phone: form.phone.trim(),
-          procedure: surgeryLabel,
-          discharge_date: form.dischargeDate || null,
-          recovery_total_days: Number(form.totalDays) || 30,
-          recovery_current_day: 1,
-          risk_level: "LOW",
-          phase: "Phase 1",
-          phase_label: "Early recovery",
+    if (isSupabaseConfigured() && supabase && patientId) {
+      await supabase
+        .from("patients")
+        .update({
           hospital_name: form.hospitalName?.trim() || "City Hospital",
           hospital_phone: form.hospitalPhone?.trim() || null,
-        },
-      ])
-      .select("id")
-      .single();
-
-    if (pErr) throw pErr;
-    const patientId = inserted.id;
-
-    if (form.caregiverPhone?.trim()) {
-      const { error: cErr } = await supabase.from("caregivers").insert([
-        {
-          patient_id: patientId,
-          name: "Primary caregiver",
-          phone: form.caregiverPhone.trim(),
-          relation: "Family",
-        },
-      ]);
-      if (cErr) throw cErr;
+        })
+        .eq("id", patientId);
     }
-
-    const medLines = form.medications.map((m) => m.trim()).filter(Boolean);
-    for (const line of medLines) {
-      const { error: mErr } = await supabase.from("medications").insert([
-        {
-          patient_id: patientId,
-          name: line,
-          dose: "",
-        },
-      ]);
-      if (mErr) throw mErr;
-    }
-
     return patientId;
   }
 
@@ -178,6 +153,17 @@ export default function RegisterPatientPage() {
                     onChange={(e) => update("phone", e.target.value)}
                     placeholder="+91 98000 00000"
                     type="tel"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Patient PIN" required>
+                  <input
+                    required
+                    value={form.patientPin}
+                    onChange={(e) => update("patientPin", e.target.value.replace(/\D/g, ""))}
+                    placeholder="4-8 digits"
+                    type="password"
+                    maxLength={8}
                     className="field-input"
                   />
                 </Field>
@@ -301,7 +287,7 @@ export default function RegisterPatientPage() {
 
             <button
               type="submit"
-              disabled={!form.name || !form.surgeryType}
+              disabled={!form.name || !form.surgeryType || !form.phone || form.patientPin.length < 4}
               className="w-full py-5 rounded-2xl font-heading font-bold text-lg text-white disabled:opacity-50"
               style={{
                 background: "linear-gradient(145deg, #5a7a5f, #3d5442)",
@@ -309,7 +295,7 @@ export default function RegisterPatientPage() {
                   "6px 6px 16px rgba(37,53,41,0.4), -3px -3px 10px rgba(141,170,145,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
               }}
             >
-              Save to Supabase
+              Create Patient + AI Plan
               <span className="material-symbols-outlined ml-2 text-[20px] align-middle">save</span>
             </button>
           </form>
@@ -360,8 +346,14 @@ export default function RegisterPatientPage() {
             </div>
             <h2 className="font-heading text-[2.5rem] tracking-tight text-ink">Patient saved</h2>
             <p className="font-inter text-ink-muted text-lg max-w-md">
-              {form.name}&apos;s record is in Supabase. Open the dashboard to view them.
+              {form.name}&apos;s profile and AI plan are ready.
             </p>
+            <div className="w-full max-w-md bg-primary/6 border border-primary/20 rounded-2xl p-4 text-left">
+              <p className="font-inter text-xs uppercase tracking-wider text-primary font-semibold">Patient Login Credentials</p>
+              <p className="font-inter text-sm text-ink mt-2"><span className="font-semibold">Phone:</span> {form.phone || 'Not set'}</p>
+              <p className="font-inter text-sm text-ink mt-1"><span className="font-semibold">PIN:</span> {form.patientPin || 'Not set'}</p>
+              <p className="font-inter text-xs text-ink-muted mt-2">Ask patient to open <span className="font-mono">/patient-login</span> and sign in with these details.</p>
+            </div>
             <div className="flex gap-4 flex-col md:flex-row w-full max-w-sm flex-wrap justify-center">
               {createdId && (
                 <Link

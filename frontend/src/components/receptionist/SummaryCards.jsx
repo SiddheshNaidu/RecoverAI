@@ -9,18 +9,18 @@ export default function SummaryCards({ active = 12, needsAttention = 3, appointm
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {cards.map((c, i) => (
         <div
           key={c.label}
-          className="bg-white rounded-[1.5rem] p-6 flex flex-col gap-4 animate-fade-up shadow-sm hover:shadow-ambient transition-shadow duration-300"
+          className="bg-white rounded-[1.25rem] p-5 flex flex-col gap-3 animate-fade-up shadow-sm hover:shadow-ambient transition-shadow duration-300"
           style={{ animationDelay: `${i * 60}ms` }}
         >
           <div className={`w-12 h-12 rounded-full ${c.bg} flex items-center justify-center`}>
             <span className={`material-symbols-outlined text-[24px] ${c.color}`}>{c.icon}</span>
           </div>
           <div>
-            <div className={`font-heading text-[2.5rem] font-bold leading-none ${c.color}`}>{c.value}</div>
+            <div className={`font-heading text-[2rem] md:text-[2.2rem] font-bold leading-none ${c.color}`}>{c.value}</div>
             <div className="font-inter text-sm text-ink-muted mt-1">{c.label}</div>
           </div>
         </div>

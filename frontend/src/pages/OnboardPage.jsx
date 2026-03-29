@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { extractDischargeSummary, createPatientWithPlan } from '../api/client';
 
 export default function OnboardPage() {
   const navigate = useNavigate();
@@ -23,14 +24,97 @@ export default function OnboardPage() {
   });
 
   const [manualSubStep, setManualSubStep] = useState(1);
+  const [file, setFile] = useState(null);
+  const [uploadName, setUploadName] = useState('');
+  const [profileName, setProfileName] = useState('');
+  const [patientPhone, setPatientPhone] = useState('');
+  const [patientPin, setPatientPin] = useState('');
+  const [caregiverPhone, setCaregiverPhone] = useState('');
+  const [apiError, setApiError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSimulateAI = (e) => {
+  const normalizeSurgeryType = (raw) => {
+    const s = String(raw || '').toLowerCase();
+    if (s.includes('append')) return 'appendectomy';
+    if (s.includes('c-section') || s.includes('c section') || s.includes('cesarean') || s.includes('c_section')) return 'c_section';
+    if (s.includes('knee')) return 'knee_replacement';
+    if (s.includes('gall')) return 'gallbladder';
+    return 'other';
+  };
+
+  const toMedicationObjects = (lines = []) =>
+    lines
+      .map((line) => String(line || '').trim())
+      .filter(Boolean)
+      .map((name) => ({ name, frequency: '', critical: false }));
+
+  const submitOnboarding = async (payloadBuilder) => {
+    try {
+      setApiError('');
+      setIsSubmitting(true);
+      setStep(3);
+      const payload = await payloadBuilder();
+      const res = await createPatientWithPlan(payload);
+      const patient = res?.patient;
+      if (!patient?.id) throw new Error('Patient creation failed.');
+      login('patient', {
+        id: patient.id,
+        name: patient.name || profileName || 'Patient',
+        condition: patient.surgery_type || payload.surgery_type,
+        phone: patient.caregiver_phone || caregiverPhone || '',
+        recovery_day: 1,
+      });
+      navigate(`/patient/${patient.id}`);
+    } catch (e) {
+      setApiError(e?.message || 'Failed to generate plan.');
+      setStep(2);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleManualSubmit = (e) => {
     e?.preventDefault();
-    setStep(3); // Processing step
-    setTimeout(() => {
-      login('patient', { id: 'demo123', name: 'Sarah Jenkins', condition: formData.condition || 'General Recovery' });
-      navigate('/patient/demo123');
-    }, 4000);
+    submitOnboarding(async () => ({
+      name: profileName || 'Patient',
+      patient_phone: patientPhone || null,
+      patient_pin: patientPin || null,
+      surgery_type: normalizeSurgeryType(formData.condition),
+      discharge_date: formData.date || null,
+      caregiver_phone: caregiverPhone || null,
+      language_preference: preferredLanguage?.code || 'en',
+      medications: toMedicationObjects([]),
+      special_instructions: formData.restrictions || '',
+      discharge_summary_text: `Condition: ${formData.condition || ''}`,
+      age: formData.age ? Number(formData.age) : null,
+      gender: formData.gender || null,
+      comorbidities: formData.comorbidities || [],
+      restrictions: formData.restrictions || '',
+      support_system: formData.supportSystem || null,
+      baseline_pain: typeof formData.baselinePain === 'number' ? formData.baselinePain : null,
+    }));
+  };
+
+  const handleUploadSubmit = (e) => {
+    e?.preventDefault();
+    submitOnboarding(async () => {
+      if (!file) throw new Error('Please select a discharge summary file.');
+      const extractedRes = await extractDischargeSummary(file);
+      const extracted = extractedRes?.extracted || {};
+      const meds = Array.isArray(extracted.medications) ? extracted.medications : [];
+      return {
+        name: profileName || 'Patient',
+        patient_phone: patientPhone || null,
+        patient_pin: patientPin || null,
+        surgery_type: normalizeSurgeryType(extracted.surgery_type),
+        discharge_date: extracted.discharge_date || formData.date || null,
+        caregiver_phone: caregiverPhone || null,
+        language_preference: preferredLanguage?.code || 'en',
+        medications: meds,
+        special_instructions: extracted.special_instructions || '',
+        discharge_summary_text: extracted.diagnosis_summary || uploadName || '',
+      };
+    });
   };
 
   const nextManualStep = () => setManualSubStep(prev => prev + 1);
@@ -55,6 +139,11 @@ export default function OnboardPage() {
         )}
 
         <div className="flex-1 flex flex-col justify-center">
+          {apiError && (
+            <div className="mb-6 rounded-2xl p-4 border border-error/30 bg-error/5 text-error text-sm font-inter" role="alert">
+              {apiError}
+            </div>
+          )}
           
           {/* STEP 1: Select Mode */}
           {step === 1 && (
@@ -317,10 +406,11 @@ export default function OnboardPage() {
                   </button>
                 ) : (
                   <button 
-                    onClick={handleSimulateAI} 
+                    onClick={handleManualSubmit}
+                    disabled={!profileName || !patientPhone || patientPin.length < 4 || !caregiverPhone || isSubmitting}
                     className="btn-gradient px-8 py-4 text-lg shadow-orb animate-pulse-slow"
                   >
-                    Generate AI Protocol
+                    {isSubmitting ? 'Generating...' : 'Generate AI Protocol'}
                     <span className="material-symbols-outlined ml-2">auto_awesome</span>
                   </button>
                 )}
@@ -339,19 +429,81 @@ export default function OnboardPage() {
               </p>
               
               <div className="border-2 border-dashed border-primary/30 rounded-[2rem] p-12 md:p-20 flex flex-col items-center justify-center bg-white/50 hover:bg-white hover:border-primary/60 transition-colors duration-300 cursor-pointer group">
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  className="hidden"
+                  id="discharge-upload"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setFile(f);
+                    setUploadName(f?.name || '');
+                  }}
+                />
+                <label htmlFor="discharge-upload" className="contents cursor-pointer">
                 <div className="w-24 h-24 bg-surface-low rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary-fixed transition-all duration-500 shadow-sm">
                   <span className="material-symbols-outlined text-primary text-[48px]">cloud_upload</span>
                 </div>
                 <h3 className="font-heading text-2xl font-bold text-ink mb-2">Tap to browse files</h3>
                 <p className="font-inter text-ink-muted">PDF, JPG, or PNG from your hospital</p>
+                {uploadName && <p className="font-inter text-primary mt-3 text-sm">Selected: {uploadName}</p>}
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-left">
+                <div className="flex flex-col gap-2">
+                  <label className="font-heading text-sm font-bold text-ink">Your Name *</label>
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="Ramesh Patil"
+                    className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-heading text-sm font-bold text-ink">Patient Phone *</label>
+                  <input
+                    type="tel"
+                    value={patientPhone}
+                    onChange={(e) => setPatientPhone(e.target.value)}
+                    placeholder="+919700000000"
+                    className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-heading text-sm font-bold text-ink">Set 4-digit PIN *</label>
+                  <input
+                    type="password"
+                    maxLength={8}
+                    value={patientPin}
+                    onChange={(e) => setPatientPin(e.target.value.replace(/\D/g, ''))}
+                    placeholder="1234"
+                    className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-heading text-sm font-bold text-ink">Caregiver Phone *</label>
+                  <input
+                    type="tel"
+                    value={caregiverPhone}
+                    onChange={(e) => setCaregiverPhone(e.target.value)}
+                    placeholder="+919800000000"
+                    className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-between items-center mt-12">
                 <button type="button" onClick={() => setStep(1)} className="font-inter text-ink font-medium hover:text-primary transition-colors px-4 py-2 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back
                 </button>
-                <button onClick={handleSimulateAI} className="btn-gradient px-10 py-4 text-lg">
-                  Submit to AI
+                <button
+                  onClick={handleUploadSubmit}
+                  disabled={!file || !profileName || !patientPhone || patientPin.length < 4 || !caregiverPhone || isSubmitting}
+                  className="btn-gradient px-10 py-4 text-lg disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Processing...' : 'Submit to AI'}
                   <span className="material-symbols-outlined ml-2">auto_awesome</span>
                 </button>
               </div>
@@ -382,6 +534,54 @@ export default function OnboardPage() {
       {/* Ambient background blur for wizard focus */}
       {step === 2 && mode === 'manual' && (
          <div className="fixed top-[-50%] left-[-10%] w-[100vw] h-[100vh] bg-[radial-gradient(ellipse_at_top_left,_rgba(141,170,145,0.15),_transparent_70%)] pointer-events-none -z-10" />
+      )}
+
+      {step === 2 && mode === 'manual' && manualSubStep === 4 && (
+        <div className="max-w-[1024px] mx-auto w-full px-0 mt-4 relative z-20">
+          <div className="w-full max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="font-heading text-sm font-bold text-ink">Your Name *</label>
+              <input
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                placeholder="Ramesh Patil"
+                className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-heading text-sm font-bold text-ink">Patient Phone *</label>
+              <input
+                type="tel"
+                value={patientPhone}
+                onChange={(e) => setPatientPhone(e.target.value)}
+                placeholder="+919700000000"
+                className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-heading text-sm font-bold text-ink">Set 4-digit PIN *</label>
+              <input
+                type="password"
+                maxLength={8}
+                value={patientPin}
+                onChange={(e) => setPatientPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="1234"
+                className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-heading text-sm font-bold text-ink">Caregiver Phone *</label>
+              <input
+                type="tel"
+                value={caregiverPhone}
+                onChange={(e) => setCaregiverPhone(e.target.value)}
+                placeholder="+919800000000"
+                className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

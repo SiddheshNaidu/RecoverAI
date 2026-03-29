@@ -103,11 +103,20 @@ export function timeSlotLabel(slot) {
  */
 export function protocolTaskToRow(t, patientId) {
   const slot = timeSlotLabel(t.time_slot);
-  const to = t.icon_type === "mic" ? `/patient/${patientId}/checkin` : null;
+  const rawIcon = String(t.icon_type || "").trim();
+  const iconMap = {
+    task: "check_circle",
+    bandage: "healing",
+    walk: "directions_walk",
+    med: "medication",
+    medicine: "medication",
+  };
+  const icon = iconMap[rawIcon] || rawIcon || "check_circle";
+  const to = icon === "mic" ? `/patient/${patientId}/checkin` : null;
   return {
     title: t.task_name,
     time: slot,
-    icon: t.icon_type || "check_circle",
+    icon,
     to,
     done: false,
   };

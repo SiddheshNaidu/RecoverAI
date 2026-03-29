@@ -15,6 +15,7 @@ import {
   parseModelJsonString,
   buildPainCheckinPrompt,
   deliverWhatsApp,
+  adaptDailyPlanAfterCheckin,
 } from "../api/client";
 
 const PIPELINE_VOICE = [
@@ -145,10 +146,29 @@ export default function CheckinPage() {
           }
         }
 
+        try {
+          await adaptDailyPlanAfterCheckin(checkinId, {
+            summary: ui.summary,
+            pain_score: ui.pain_score,
+            risk: ui.risk,
+          });
+        } catch {
+          // Non-blocking: check-in result should still be shown
+        }
+
         setResult(ui);
         setPhase("result");
       } catch (err) {
-        setApiError(err instanceof Error ? err.message : "Check-in failed.");
+        const msg = err instanceof Error ? err.message : "Check-in failed.";
+        const fromAudio = Boolean(audioBlob && audioBlob.size > 0);
+        if (fromAudio) {
+          setUseText(true);
+        }
+        setApiError(
+          fromAudio
+            ? `${msg} You can continue instantly using typed check-in below.`
+            : msg
+        );
         setPhase("idle");
       }
     },
@@ -231,6 +251,11 @@ export default function CheckinPage() {
             role="alert"
           >
             {apiError}
+            {useText && (
+              <p className="mt-2 text-ink-muted">
+                Tip: write 1-2 lines about pain level, wound status, and any symptoms.
+              </p>
+            )}
           </div>
         )}
 
@@ -424,7 +449,7 @@ export default function CheckinPage() {
             )}
 
             <div className="bg-[#dcfce7] rounded-2xl p-5 flex gap-4 items-center">
-              <span className="material-symbols-outlined text-[#16a34a] text-[24px]">whatsapp</span>
+              <span className="material-symbols-outlined text-[#16a34a] text-[24px]">chat</span>
               <p className="font-inter text-[#14532d] font-medium">
                 {result.alert_caregiver
                   ? `Caregiver alert prepared for ${result.whatsapp}${caregiverPhone ? " (WhatsApp sent if Twilio is configured)" : " — add a valid +E.164 phone on the patient profile to deliver"}`

@@ -11,6 +11,7 @@ import {
   buildAdherenceForHeatmap,
   protocolTaskToRow,
 } from "../lib/recoveryMappers";
+import { fetchDailyPlan } from "../api/client";
 
 function procedureToConditionKey(procedure) {
   const p = (procedure || "").toLowerCase();
@@ -33,6 +34,7 @@ export default function PatientHomePage() {
   const [medRows, setMedRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dailyPlan, setDailyPlan] = useState(null);
 
   const patientId = patient?.id || paramId || currentPatient?.id || null;
 
@@ -88,6 +90,13 @@ export default function PatientHomePage() {
         );
         setTasks(sorted);
         setMedRows(meds || []);
+
+        try {
+          const planRes = await fetchDailyPlan(pid);
+          setDailyPlan(planRes);
+        } catch {
+          setDailyPlan(null);
+        }
       } catch (e) {
         setError(e?.message || String(e));
       } finally {
@@ -247,6 +256,16 @@ export default function PatientHomePage() {
                 View Full Plan →
               </Link>
             </div>
+
+            {dailyPlan?.plan?.day_goal && (
+              <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4">
+                <p className="font-inter text-xs uppercase tracking-wider text-primary font-semibold">Gemini Daily Goal</p>
+                <p className="font-heading text-ink text-lg mt-1">{dailyPlan.plan.day_goal}</p>
+                <p className="font-inter text-xs text-ink-muted mt-1">
+                  Updated for today · source: {dailyPlan.source || 'daily_refresh'}
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               {taskRows.length === 0 ? (

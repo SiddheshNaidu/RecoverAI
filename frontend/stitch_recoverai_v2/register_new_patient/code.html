@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecoverAI - Patient Registration</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary": "#ffffff",
+              "primary-container": "#8daa91",
+              "inverse-on-surface": "#f4f1de",
+              "on-surface": "#1c1c11",
+              "secondary-container": "#e6e3d0",
+              "primary": "#4a654f",
+              "on-primary-container": "#253f2b",
+              "tertiary-fixed": "#c7e7ff",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#ece9d6",
+              "secondary-fixed": "#e6e3d0",
+              "primary-fixed": "#cceacf",
+              "inverse-surface": "#313124",
+              "tertiary-fixed-dim": "#98cdf2",
+              "on-secondary-container": "#666556",
+              "error": "#ba1a1a",
+              "on-primary-fixed": "#062010",
+              "surface-container": "#f1eedb",
+              "on-tertiary-container": "#003d59",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-fixed-variant": "#064c6b",
+              "secondary": "#605f50",
+              "surface-bright": "#fdfae7",
+              "tertiary-container": "#74a9cd",
+              "on-error": "#ffffff",
+              "tertiary": "#2b6485",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-secondary-fixed-variant": "#48473a",
+              "outline": "#737972",
+              "surface-tint": "#4a654f",
+              "surface-container-highest": "#e6e3d0",
+              "secondary-fixed-dim": "#c9c7b5",
+              "on-surface-variant": "#424842",
+              "background": "#fdfae7",
+              "surface-variant": "#e6e3d0",
+              "surface-container-low": "#f7f4e1",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#b0ceb4",
+              "outline-variant": "#c2c8c0",
+              "on-secondary-fixed": "#1c1c11",
+              "inverse-primary": "#b0ceb4",
+              "surface-dim": "#dddbc8",
+              "surface": "#fdfae7",
+              "on-tertiary-fixed": "#001e2e",
+              "on-primary-fixed-variant": "#334d38",
+              "on-background": "#1c1c11"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-nav {
+        backdrop-filter: blur(24px);
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Bar -->
+<nav class="bg-white/70 backdrop-blur-xl docked full-width top-0 sticky z-50 no-border-tonal-shift bg-stone-50/50">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-bold tracking-tight text-emerald-900 font-headline">RecoverAI</div>
+<div class="hidden md:flex items-center gap-8 font-manrope font-medium text-sm tracking-wide">
+<a class="text-emerald-700 font-semibold border-b-2 border-emerald-600 pb-1" href="#">Patients</a>
+<a class="text-stone-500 hover:text-emerald-600 transition-colors duration-300" href="#">Staff</a>
+<a class="text-stone-500 hover:text-emerald-600 transition-colors duration-300" href="#">Resources</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-stone-500 hover:bg-stone-100/50 rounded-full transition-colors duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-stone-500 hover:bg-stone-100/50 rounded-full transition-colors duration-300">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional portrait of a healthcare administrator in a bright modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5essy-QQxonMTW__D6XBK_L9h1dtYzhp4SHG_yC1drGe20trSE_mbcuhVvqno0gPuS2tiLfmORZjecMZ9udtpH7qdWLhb_bwsvSs5O0jBqw9rn5EYRx5tuHe1e3J6ri7HmhZosHzIAB6uQjW4vSrwSso38yv4OwngZVB5xoMcCOfyIwuCl33WEpilUJipfZ0whpLHsEZMkVNYAB-ypL1t4LO80ljoMmiHxOvZ4AQA3_GHCw8s76cv_kZD8TstHlv_TQapBL8-zvo"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 pt-12 pb-24">
+<!-- Header Section -->
+<div class="mb-16">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant mb-3 block">Section 4.10 — Administration</span>
+<h1 class="font-headline text-5xl font-bold text-on-surface tracking-tight mb-4">Register New Patient</h1>
+<p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">
+                Begin the therapeutic journey by documenting vital information. Our AI will synthesize these details into a personalized recovery sanctuary.
+            </p>
+</div>
+<!-- Asymmetric Layout Container -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Main Registration Form (8 Columns) -->
+<div class="lg:col-span-7 bg-surface-container-low rounded-3xl p-10">
+<form class="space-y-10">
+<!-- Personal Information -->
+<section>
+<h2 class="font-headline text-xl font-semibold mb-6 flex items-center gap-3">
+<span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-sm">person</span>
+</span>
+                            Patient Identity
+                        </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="font-label text-sm font-medium text-on-surface-variant px-1">Full Name</label>
+<input class="w-full bg-surface-container-lowest border-none ring-1 ring-outline-variant/15 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface placeholder:text-outline-variant transition-all" placeholder="e.g. Eleanor Vance" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-label text-sm font-medium text-on-surface-variant px-1">Primary Phone</label>
+<input class="w-full bg-surface-container-lowest border-none ring-1 ring-outline-variant/15 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface placeholder:text-outline-variant transition-all" placeholder="+1 (555) 000-0000" type="tel"/>
+</div>
+</div>
+</section>
+<!-- Clinical Details -->
+<section>
+<h2 class="font-headline text-xl font-semibold mb-6 flex items-center gap-3">
+<span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-sm">medical_services</span>
+</span>
+                            Surgical Context
+                        </h2>
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="font-label text-sm font-medium text-on-surface-variant px-1">Surgery Type</label>
+<select class="w-full bg-surface-container-lowest border-none ring-1 ring-outline-variant/15 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface appearance-none transition-all">
+<option>Select Procedure</option>
+<option>Total Hip Replacement</option>
+<option>Knee Arthroscopy</option>
+<option>Spinal Fusion</option>
+<option>Cardiac Bypass</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label text-sm font-medium text-on-surface-variant px-1">Current Medications</label>
+<textarea class="w-full bg-surface-container-lowest border-none ring-1 ring-outline-variant/15 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface placeholder:text-outline-variant transition-all resize-none" placeholder="List all current prescriptions and dosages..." rows="3"></textarea>
+</div>
+</div>
+</section>
+<!-- Support Circle -->
+<section>
+<h2 class="font-headline text-xl font-semibold mb-6 flex items-center gap-3">
+<span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-sm">group</span>
+</span>
+                            Caregiver Support
+                        </h2>
+<div class="space-y-2">
+<label class="font-label text-sm font-medium text-on-surface-variant px-1">Caregiver Phone</label>
+<input class="w-full bg-surface-container-lowest border-none ring-1 ring-outline-variant/15 focus:ring-2 focus:ring-primary rounded-xl px-4 py-3 text-on-surface placeholder:text-outline-variant transition-all" placeholder="Primary emergency contact number" type="tel"/>
+</div>
+</section>
+<!-- CTA -->
+<div class="pt-4">
+<button class="w-full py-5 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-lg shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all active:scale-[0.98]" type="submit">
+                            Generate Recovery Plan
+                        </button>
+<p class="text-center text-xs text-on-surface-variant mt-4 font-label tracking-wide">
+                            Initial baseline analysis will take approximately 15 seconds.
+                        </p>
+</div>
+</form>
+</div>
+<!-- Sidebar "Sanctuary" Guide (4 Columns) -->
+<div class="lg:col-span-5 space-y-8">
+<div class="bg-white rounded-3xl p-8 ring-1 ring-outline-variant/15 overflow-hidden relative">
+<div class="relative z-10">
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-4">The Digital Sanctuary</h3>
+<p class="text-on-surface-variant leading-relaxed mb-6">
+                            Registration is the first step in our empathetic care model. By providing accurate details, you enable:
+                        </p>
+<ul class="space-y-4">
+<li class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary-container">auto_awesome</span>
+<span class="text-sm font-medium text-on-surface">AI-Tailored Physical Therapy</span>
+</li>
+<li class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary-container">alarm</span>
+<span class="text-sm font-medium text-on-surface">Smart Medication Reminders</span>
+</li>
+<li class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary-container">psychology</span>
+<span class="text-sm font-medium text-on-surface">Cognitive Load Management</span>
+</li>
+</ul>
+</div>
+<div class="absolute -bottom-10 -right-10 w-48 h-48 bg-tertiary-fixed/30 rounded-full blur-3xl"></div>
+</div>
+<div class="bg-surface-dim rounded-3xl p-8 border border-white/40">
+<h4 class="font-headline text-lg font-bold text-on-surface mb-4">Patient Status Insights</h4>
+<div class="aspect-video rounded-2xl overflow-hidden bg-surface-container-highest">
+<img alt="Clinical environment" class="w-full h-full object-cover opacity-80 mix-blend-multiply" data-alt="serene high-end medical consultation room with large windows showing a lush garden with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDpe7puvZ87wWphj0PtQsN9vwyPeqBHAp9PEVxZwHMYjH46TTWOayPKT4uMLcbWj85fZ1_58p3Gd9pJDQskHUjjn5QtbaMb91Ka_jnj9F24BebmE8s9C7SZ6D7uTjDfCLsX6crzKo3xWCBkWv6iQmMiZRf3Q90GaDJsQQ5tkpseD2E7io9u6AhD0WR-VMF3HJTYGqGZkIcTka8AYrIYBAxy8H9oNt97lQzpMnmfTSz1DJWmLaz0wWgJDu84QDSRyCWIIMgTID8NMQ"/>
+</div>
+<p class="mt-4 text-xs font-label text-on-surface-variant uppercase tracking-widest text-center">Preview of Dashboard Environment</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-stone-50 z-50 rounded-t-[2rem] shadow-[0_-4px_20px_0_rgba(28,28,17,0.04)]">
+<div class="flex flex-col items-center justify-center text-stone-500 px-5 py-2">
+<span class="material-symbols-outlined">home</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-emerald-100 text-emerald-900 rounded-2xl px-5 py-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">Plan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-500 px-5 py-2">
+<span class="material-symbols-outlined">history</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-500 px-5 py-2">
+<span class="material-symbols-outlined">emergency</span>
+<span class="font-inter text-[10px] font-medium uppercase tracking-widest mt-1">SOS</span>
+</div>
+</div>
+</body></html>

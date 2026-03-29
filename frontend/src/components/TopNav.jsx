@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 /* ────────────────────────────────────────────────────────────
@@ -12,6 +12,7 @@ import { useApp } from '../context/AppContext';
 export default function TopNav() {
   const { currentRole, currentPatient, logout, preferredLanguage } = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isGateway = ['/', '/onboard', '/login'].includes(location.pathname);
   const patientId = currentPatient?.id || 'demo-auth';
@@ -31,6 +32,11 @@ export default function TopNav() {
   const navLinks = currentRole === 'patient' ? patientLinks
     : currentRole === 'receptionist' ? receptionistLinks
     : [];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="sticky top-0 z-50">
@@ -124,6 +130,26 @@ export default function TopNav() {
 
         {/* ── Right Actions ─────────────────────── */}
         <div className="flex items-center gap-2 ml-auto md:ml-0">
+          {isGateway && (
+            <>
+              <Link
+                to="/patient-login"
+                className="hidden sm:inline-flex items-center h-9 px-4 rounded-full font-inter text-sm font-semibold no-underline text-ink hover:bg-black/5 transition-colors"
+              >
+                Patient Login
+              </Link>
+              <Link
+                to="/login"
+                className="inline-flex items-center h-9 px-4 rounded-full font-inter text-sm font-semibold no-underline text-white transition-all duration-200 hover:opacity-90"
+                style={{
+                  background: 'linear-gradient(135deg, #3d5442, #4a654f)',
+                  boxShadow: '0 2px 8px rgba(74,101,79,0.30), inset 0 1px 0 rgba(255,255,255,0.12)',
+                }}
+              >
+                Staff Login
+              </Link>
+            </>
+          )}
 
           {/* Language badge */}
           {preferredLanguage && preferredLanguage.code !== 'en' && (
@@ -177,7 +203,7 @@ export default function TopNav() {
           {/* Logout icon button */}
           {currentRole && (
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted transition-all duration-200 hover:bg-black/6 hover:text-ink active:scale-90 cursor-pointer border-0 bg-transparent"
               aria-label="Sign out"
             >

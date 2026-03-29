@@ -35,6 +35,14 @@ _IMAGE_FALLBACK: dict[str, Any] = {
     "tags": [],
 }
 
+_DISCHARGE_FALLBACK: dict[str, Any] = {
+    "surgery_type": "other",
+    "discharge_date": "",
+    "medications": [],
+    "special_instructions": "",
+    "diagnosis_summary": "",
+}
+
 
 def _strip_markdown_fences(text: str) -> str:
     t = text.strip()
@@ -88,6 +96,17 @@ def _coerce_str_list(val: Any) -> list[str]:
     if isinstance(val, list):
         return [str(x) for x in val]
     return [str(val)]
+
+
+def _parse_json_object(text: str) -> dict[str, Any] | None:
+    cleaned = _strip_markdown_fences(text)
+    try:
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(parsed, dict):
+        return parsed
+    return None
 
 
 def _normalize_image_dict(parsed: dict[str, Any]) -> dict[str, Any]:
@@ -166,6 +185,87 @@ def _create_lesson_sync(api_key: str, knowledge_card: dict[str, Any]) -> str:
         return ""
 
 
+def _extract_discharge_sync(
+    api_key: str,
+    file_bytes: bytes,
+    mime_type: str,
+    filename: str,
+) -> dict[str, Any]:
+    try:
+        if not file_bytes:
+            return dict(_DISCHARGE_FALLBACK)
+
+        client = genai.Client(api_key=api_key)
+        prompt = (
+            "You are a clinical discharge summary extractor for post-surgery recovery planning. "
+            "Read the attached discharge summary document and return VALID JSON ONLY with keys: "
+            "surgery_type (appendectomy|c_section|knee_replacement|gallbladder|other), "
+            "discharge_date (YYYY-MM-DD if present else empty string), "
+            "medications (array of objects: {name, frequency, critical}), "
+            "special_instructions (string), diagnosis_summary (string). "
+            "If uncertain, make safest reasonable inference and keep unsupported fields empty."
+        )
+
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+                        types.Part.from_text(text=f"Filename: {filename}\n\n{prompt}"),
+                    ],
+                )
+            ],
+            config=types.GenerateContentConfig(max_output_tokens=4096),
+        )
+
+        raw = _response_text(response)
+        parsed = _parse_json_object(raw)
+        if not parsed:
+            return dict(_DISCHARGE_FALLBACK)
+
+        meds_raw = parsed.get("medications", [])
+        meds: list[dict[str, Any]] = []
+        if isinstance(meds_raw, list):
+            for m in meds_raw:
+                if isinstance(m, dict):
+                    meds.append(
+                        {
+                            "name": str(m.get("name", "")).strip(),
+                            "frequency": str(m.get("frequency", "")).strip(),
+                            "critical": bool(m.get("critical", False)),
+                        }
+                    )
+                elif m is not None:
+                    meds.append(
+                        {"name": str(m).strip(), "frequency": "", "critical": False}
+                    )
+
+        surgery = str(parsed.get("surgery_type", "other") or "other").lower().strip()
+        if surgery not in {
+            "appendectomy",
+            "c_section",
+            "knee_replacement",
+            "gallbladder",
+            "other",
+        }:
+            surgery = "other"
+
+        return {
+            "surgery_type": surgery,
+            "discharge_date": str(parsed.get("discharge_date", "") or "").strip(),
+            "medications": [m for m in meds if m.get("name")],
+            "special_instructions": str(
+                parsed.get("special_instructions", "") or ""
+            ).strip(),
+            "diagnosis_summary": str(parsed.get("diagnosis_summary", "") or "").strip(),
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Gemini extract_discharge (sync) failed: %s", exc)
+        return dict(_DISCHARGE_FALLBACK)
+
+
 async def generate(prompt: str) -> str:
     try:
         api_key = os.getenv("GEMINI_API_KEY", "").strip()
@@ -200,3 +300,27 @@ async def create_lesson(knowledge_card: dict[str, Any]) -> str:
     except Exception as exc:  # noqa: BLE001
         logger.exception("Gemini create_lesson failed: %s", exc)
         return ""
+
+
+async def extract_discharge_summary(
+    file_bytes: bytes,
+    mime_type: str,
+    filename: str,
+) -> dict[str, Any]:
+    try:
+        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        if not api_key:
+            logger.error(
+                "Gemini extract_discharge_summary: GEMINI_API_KEY is missing or empty"
+            )
+            return dict(_DISCHARGE_FALLBACK)
+        return await asyncio.to_thread(
+            _extract_discharge_sync,
+            api_key,
+            file_bytes,
+            mime_type,
+            filename,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Gemini extract_discharge_summary failed: %s", exc)
+        return dict(_DISCHARGE_FALLBACK)

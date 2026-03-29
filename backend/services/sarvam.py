@@ -31,6 +31,16 @@ _LANGUAGE_ALIASES: dict[str, str] = {
     "gu": "gu-IN",
 }
 
+_SUPPORTED_MIME_PREFIXES = (
+    "audio/webm",
+    "audio/wav",
+    "audio/x-wav",
+    "audio/ogg",
+    "audio/mp4",
+    "audio/mpeg",
+    "audio/mp3",
+)
+
 
 def mock_transcribe() -> str:
     return (
@@ -63,6 +73,13 @@ def _audio_file_fields(audio_bytes: bytes, content_type: str | None) -> tuple[st
     return ("audio.wav", audio_bytes, "audio/wav")
 
 
+def _is_supported_content_type(content_type: str | None) -> bool:
+    ct = (content_type or "").split(";")[0].strip().lower()
+    if not ct:
+        return True
+    return any(ct.startswith(prefix) for prefix in _SUPPORTED_MIME_PREFIXES)
+
+
 def _extract_transcript(body: Any) -> str:
     if not isinstance(body, dict):
         return ""
@@ -75,14 +92,30 @@ def _extract_transcript(body: Any) -> str:
 async def transcribe(
     audio_bytes: bytes, language: str = "hi", content_type: str | None = None
 ) -> str:
+    meta = await transcribe_with_meta(audio_bytes, language, content_type)
+    return str(meta.get("transcript") or "")
+
+
+async def transcribe_with_meta(
+    audio_bytes: bytes, language: str = "hi", content_type: str | None = None
+) -> dict[str, Any]:
     try:
         if not audio_bytes:
-            return ""
+            return {"transcript": "", "error": "No audio content received."}
+
+        if not _is_supported_content_type(content_type):
+            return {
+                "transcript": "",
+                "error": "Unsupported audio format. Use webm, wav, ogg, m4a, or mp3.",
+            }
 
         api_key = os.getenv("SARVAM_API_KEY", "").strip()
         if not api_key:
             logger.error("Sarvam STT: SARVAM_API_KEY is missing or empty")
-            return ""
+            return {
+                "transcript": "",
+                "error": "SARVAM_API_KEY is missing on backend.",
+            }
 
         headers = {"api-subscription-key": api_key}
         data = {
@@ -107,20 +140,32 @@ async def transcribe(
                 response.status_code,
                 response.text[:500],
             )
-            return ""
+            return {
+                "transcript": "",
+                "error": f"Sarvam STT failed with HTTP {response.status_code}",
+            }
 
         try:
             payload = response.json()
         except Exception as exc:  # noqa: BLE001 — never raise from transcribe
             logger.error("Sarvam STT: invalid JSON response: %s", exc)
-            return ""
+            return {"transcript": "", "error": "Sarvam returned invalid JSON."}
 
         text = _extract_transcript(payload)
         if not text and isinstance(payload, dict) and payload.get("error"):
             err = payload["error"]
             msg = err.get("message", err) if isinstance(err, dict) else err
             logger.error("Sarvam STT API error: %s", msg)
-        return text
+            return {"transcript": "", "error": str(msg)}
+        if not text:
+            return {
+                "transcript": "",
+                "error": "Sarvam did not return any transcript text.",
+            }
+        return {"transcript": text, "error": ""}
     except Exception as exc:  # noqa: BLE001 — contract: always return str
         logger.exception("Sarvam STT request failed: %s", exc)
-        return ""
+        return {
+            "transcript": "",
+            "error": "Sarvam request failed. Please retry or use text check-in.",
+        }

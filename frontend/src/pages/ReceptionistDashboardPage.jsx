@@ -70,15 +70,15 @@ export default function ReceptionistDashboardPage() {
     <main className="min-h-screen bg-surface pb-12">
       <div
         className="px-6 md:px-12 lg:px-20 py-10 border-b border-outline-variant/10 animate-fade-up"
-        style={{ background: "linear-gradient(135deg, #2e3d32 0%, #3d5442 60%, #4a6b50 100%)" }}
+        style={{ background: "linear-gradient(135deg, #eef4ee 0%, #e6efe7 60%, #dfeadf 100%)" }}
       >
         <div className="max-w-[1100px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <p className="font-inter text-white/60 text-sm uppercase tracking-widest font-semibold mb-2">
+            <p className="font-inter text-ink-muted text-sm uppercase tracking-widest font-semibold mb-2">
               City Hospital &nbsp;·&nbsp; Receptionist Portal
             </p>
             <h1
-              className="font-heading font-extrabold text-white"
+              className="font-heading font-extrabold text-ink"
               style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", lineHeight: 0.95, letterSpacing: "-0.03em" }}
             >
               Patient Directory
@@ -86,8 +86,8 @@ export default function ReceptionistDashboardPage() {
             {critical > 0 && (
               <div className="flex items-center gap-2 mt-3">
                 <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-                <p className="font-inter text-sm text-white/70">
-                  <span className="font-bold text-red-300">{critical} critical</span> patient{critical > 1 ? "s" : ""}{" "}
+                <p className="font-inter text-sm text-ink-muted">
+                  <span className="font-bold text-red-600">{critical} critical</span> patient{critical > 1 ? "s" : ""}{" "}
                   need attention
                 </p>
               </div>
@@ -108,7 +108,7 @@ export default function ReceptionistDashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 md:px-12 lg:px-20 pt-8 flex flex-col gap-10">
+      <div className="max-w-[1180px] mx-auto px-6 md:px-12 lg:px-20 pt-8 flex flex-col gap-10">
         <SummaryCards active={patients.length} needsAttention={critical} appointments={appointments.length} />
 
         <section className="animate-fade-up-delay">
@@ -154,7 +154,7 @@ export default function ReceptionistDashboardPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {riskFirst.map((p, i) => (
               <PatientRow key={p.id} patient={p} delay={i * 40} />
             ))}
@@ -180,7 +180,7 @@ function PatientRow({ patient: p, delay }) {
       className="group flex items-center gap-5 px-6 py-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-0.5 animate-fade-up"
       style={{
         background: isCritical ? "rgba(186,26,26,0.04)" : "#ffffff",
-        border: isCritical ? "1px solid rgba(186,26,26,0.18)" : "1px solid rgba(194,200,192,0.15)",
+        border: isCritical ? "1px solid rgba(186,26,26,0.18)" : "1px solid rgba(194,200,192,0.28)",
         boxShadow: isCritical ? "0 4px 16px rgba(186,26,26,0.08)" : "0 2px 12px rgba(28,28,17,0.06)",
         animationDelay: `${delay}ms`,
       }}
@@ -205,7 +205,7 @@ function PatientRow({ patient: p, delay }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3 mb-1">
-          <h3 className="font-heading font-bold text-ink text-lg">{p.name}</h3>
+          <h3 className="font-heading font-bold text-ink text-[1.12rem]">{p.name}</h3>
           <StatusOrb risk={orbRisk} size="sm" />
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">

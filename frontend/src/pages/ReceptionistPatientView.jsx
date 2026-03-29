@@ -187,7 +187,7 @@ export default function ReceptionistPatientView() {
 
             <div className="bg-white rounded-[2rem] p-8 shadow-sm flex flex-col gap-4">
               <h2 className="font-heading text-lg font-bold text-ink flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px] text-[#16a34a]">whatsapp</span>
+                <span className="material-symbols-outlined text-[20px] text-[#16a34a]">chat</span>
                 Caregiver Alert History
               </h2>
               {alerts.length === 0 ? (

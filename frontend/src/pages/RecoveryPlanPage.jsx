@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import supabase, { isSupabaseConfigured } from "../api/db";
 import { timeSlotLabel } from "../lib/recoveryMappers";
+import { fetchDailyPlan } from "../api/client";
 
 export default function RecoveryPlanPage() {
   const { currentPatient } = useApp();
@@ -14,6 +15,7 @@ export default function RecoveryPlanPage() {
   const [protocolTasks, setProtocolTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dailyPlan, setDailyPlan] = useState(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
@@ -55,6 +57,12 @@ export default function RecoveryPlanPage() {
         setPatient(pat);
         setMedications(meds || []);
         setProtocolTasks(tasks || []);
+        try {
+          const fresh = await fetchDailyPlan(pid);
+          setDailyPlan(fresh || null);
+        } catch {
+          setDailyPlan(null);
+        }
       } catch (e) {
         setError(e?.message || String(e));
       } finally {
@@ -70,11 +78,15 @@ export default function RecoveryPlanPage() {
     const condition = patient.procedure || "Recovery";
     const phase = patient.phase_label || patient.phase || "Recovery phase";
     const instructions =
-      protocolTasks.length > 0
+      dailyPlan?.plan?.instructions?.length
+        ? dailyPlan.plan.instructions
+        : protocolTasks.length > 0
         ? protocolTasks.map((t) => `${timeSlotLabel(t.time_slot)}: ${t.task_name}`)
         : ["Follow medication schedule", "Complete daily check-in", "Monitor wound as directed"];
     const medRows =
-      medications.length > 0
+      dailyPlan?.plan?.medications?.length
+        ? dailyPlan.plan.medications
+        : medications.length > 0
         ? medications.map((m) => ({
             time: "As prescribed",
             name: m.dose ? `${m.name} (${m.dose})` : m.name,
@@ -85,20 +97,20 @@ export default function RecoveryPlanPage() {
       day,
       condition,
       phase,
-      goal: protocolTasks[0]?.task_name || `Progress through ${phase}`,
+      goal: dailyPlan?.plan?.day_goal || protocolTasks[0]?.task_name || `Progress through ${phase}`,
       motivational_note: patient.phase
         ? `You are in ${patient.phase}. Consistency speeds healing.`
         : "Your body is healing every day.",
       instructions,
       medications: medRows,
-      diet: "Follow the diet guidance from your discharge paperwork. Stay hydrated.",
-      mobility: "Increase activity only as approved by your clinical team.",
-      warnings: [
+      diet: dailyPlan?.plan?.diet || "Follow the diet guidance from your discharge paperwork. Stay hydrated.",
+      mobility: dailyPlan?.plan?.mobility_level || "Increase activity only as approved by your clinical team.",
+      warnings: dailyPlan?.plan?.warning_signs || [
         "Seek urgent care for fever, uncontrolled pain, wound separation, or breathing difficulty.",
         "Contact your surgeon for unexpected bleeding or signs of infection.",
       ],
     };
-  }, [patient, medications, protocolTasks]);
+  }, [patient, medications, protocolTasks, dailyPlan]);
 
   const [checkedMeds, setCheckedMeds] = useState([]);
   const [checkedSteps, setCheckedSteps] = useState([]);
@@ -171,6 +183,11 @@ export default function RecoveryPlanPage() {
           <p className="font-inter text-white/60 text-base">
             {plan.condition} &nbsp;·&nbsp; {plan.phase}
           </p>
+          {dailyPlan?.source && (
+            <p className="font-inter text-white/50 text-xs uppercase tracking-wider">
+              Updated today · {dailyPlan.source}
+            </p>
+          )}
 
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
@@ -243,7 +260,7 @@ export default function RecoveryPlanPage() {
         <div className="bg-white rounded-[2rem] p-8 animate-fade-up-delay" style={{ boxShadow: "0 4px 24px rgba(28,28,17,0.07)" }}>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-heading font-bold text-ink" style={{ fontSize: "1.5rem", letterSpacing: "-0.02em" }}>
-              <span className="material-symbols-outlined text-primary align-middle mr-2 text-[26px]">pill</span>
+              <span className="material-symbols-outlined text-primary align-middle mr-2 text-[26px]">medication</span>
               Medications
             </h2>
             {allMedsDone && (

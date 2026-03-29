@@ -14,6 +14,12 @@ const STATS = [
   { num: '0', label: 'language barriers remaining' },
 ];
 
+const TRUST_BADGES = [
+  { icon: 'verified_user', label: 'Clinical-grade guidance' },
+  { icon: 'encrypted', label: 'Secure by design' },
+  { icon: 'monitoring', label: 'Daily adaptive monitoring' },
+];
+
 export default function LandingPage() {
   const [count, setCount] = useState(0);
 
@@ -111,12 +117,32 @@ export default function LandingPage() {
           </Link>
         </div>
 
+        <Link
+          to="/patient-login"
+          className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/70 border border-outline-variant/30 text-ink no-underline font-inter text-sm font-semibold hover:bg-white transition-colors"
+        >
+          <span className="material-symbols-outlined text-[18px] text-primary">login</span>
+          Existing patient? Login with PIN
+        </Link>
+
         {/* Live counter */}
         <div className="flex items-center gap-2 mt-10 animate-fade-up-delay-2">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <p className="font-inter text-sm text-ink-muted">
             <span className="font-semibold text-ink">{count} patients</span> tracked today
           </p>
+        </div>
+
+        <div className="mt-8 flex flex-wrap justify-center gap-3 animate-fade-up-delay-2">
+          {TRUST_BADGES.map((b) => (
+            <div
+              key={b.label}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/75 border border-outline-variant/20"
+            >
+              <span className="material-symbols-outlined text-primary text-[18px]">{b.icon}</span>
+              <span className="font-inter text-sm text-ink-muted font-medium">{b.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 

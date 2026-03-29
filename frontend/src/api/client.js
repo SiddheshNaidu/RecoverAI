@@ -281,6 +281,71 @@ export async function submitCheckin(formData) {
   };
 }
 
+/**
+ * Upload discharge summary for extraction.
+ * @param {File} file
+ */
+export async function extractDischargeSummary(file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  const base = getApiBase();
+  const url = base
+    ? `${base}/api/patients/extract-discharge`
+    : "/api/patients/extract-discharge";
+  const res = await fetch(url, { method: "POST", body: fd });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || res.statusText || "Upload failed");
+  return data;
+}
+
+/**
+ * Create patient + Day-1 generated plan.
+ * @param {Record<string, unknown>} payload
+ */
+export async function createPatientWithPlan(payload) {
+  return apiFetchJson("/api/patients", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Patient PIN login.
+ * @param {string} phone
+ * @param {string} pin
+ */
+export async function loginPatientWithPin(phone, pin) {
+  return apiFetchJson("/api/auth/patient/login-pin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, pin }),
+  });
+}
+
+/**
+ * Fetch daily adaptive Gemini plan for patient.
+ * @param {string} patientId
+ * @param {boolean} forceRefresh
+ */
+export async function fetchDailyPlan(patientId, forceRefresh = false) {
+  const q = forceRefresh ? "?force_refresh=true" : "";
+  return apiFetchJson(`/api/patients/${patientId}/daily-plan${q}`);
+}
+
+/**
+ * Adapt today's plan using latest check-in summary.
+ * @param {string} patientId
+ * @param {{summary?: string, pain_score?: number, risk?: string}} payload
+ */
+export async function adaptDailyPlanAfterCheckin(patientId, payload) {
+  return apiFetchJson(`/api/patients/${patientId}/adapt-plan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+}
+
 export const api = {
   async login(role, credentials) {
     await delay(LATENCY);
