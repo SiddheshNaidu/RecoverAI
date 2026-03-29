@@ -51,7 +51,7 @@ export default function TrajectoryChart({ data }) {
         Recovery Trajectory
       </h3>
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={series} margin={{ top: 10, right: 16, left: 8, bottom: 24 }}>
           <defs>
             <linearGradient id="expectedGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#c2c8c0" stopOpacity={0.3} />
@@ -64,13 +64,15 @@ export default function TrajectoryChart({ data }) {
           </defs>
           <XAxis
             dataKey="day"
+            tickFormatter={(v) => `D${v}`}
             tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#a0a8a0' }}
             tickLine={false}
             axisLine={false}
-            label={{ value: 'Day', position: 'insideRight', offset: 10, fill: '#a0a8a0', fontSize: 11 }}
+            label={{ value: 'Recovery Day (X-axis)', position: 'insideBottom', offset: -8, fill: '#7b857b', fontSize: 11 }}
           />
           <YAxis
             domain={[0, 10]}
+            label={{ value: 'Pain Score / 10 (Y-axis)', angle: -90, position: 'insideLeft', fill: '#7b857b', fontSize: 11 }}
             tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#a0a8a0' }}
             tickLine={false}
             axisLine={false}
@@ -100,6 +102,9 @@ export default function TrajectoryChart({ data }) {
           <span className="font-inter text-xs text-ink-muted">Actual</span>
         </div>
       </div>
+      <p className="font-inter text-[11px] text-ink-muted text-center mt-1">
+        X-axis = recovery days · Y-axis = pain score (0 = best, 10 = worst)
+      </p>
     </div>
   );
 }

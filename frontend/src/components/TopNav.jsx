@@ -14,7 +14,9 @@ export default function TopNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isGateway = ['/', '/onboard', '/login'].includes(location.pathname);
+  const isReceptionistPath = location.pathname.startsWith('/receptionist');
+  const isPatientPath = location.pathname.startsWith('/patient/');
+  const isGateway = ['/', '/onboard', '/login', '/patient-login'].includes(location.pathname);
   const patientId = currentPatient?.id || 'demo-auth';
 
   const patientLinks = [
@@ -29,8 +31,10 @@ export default function TopNav() {
     { label: 'Register Patient', to: '/receptionist/new', match: p => p.includes('/new'),   primary: true },
   ];
 
-  const navLinks = currentRole === 'patient' ? patientLinks
-    : currentRole === 'receptionist' ? receptionistLinks
+  const effectiveRole = currentRole || (isReceptionistPath ? 'receptionist' : isPatientPath ? 'patient' : null);
+
+  const navLinks = effectiveRole === 'patient' ? patientLinks
+    : effectiveRole === 'receptionist' ? receptionistLinks
     : [];
 
   const handleLogout = () => {
@@ -163,12 +167,12 @@ export default function TopNav() {
           )}
 
           {/* Vertical divider */}
-          {currentRole && (
+          {(effectiveRole === 'patient' || effectiveRole === 'receptionist') && (
             <div className="hidden sm:block w-px h-5 bg-outline-variant/30 mx-1" />
           )}
 
           {/* User avatar pill */}
-          {currentRole === 'patient' && currentPatient && (
+          {effectiveRole === 'patient' && currentPatient && (
             <div
               className="flex items-center gap-2 h-9 pl-1 pr-3 rounded-full font-inter text-sm"
               style={{ background: 'rgba(74,101,79,0.07)' }}
@@ -185,7 +189,7 @@ export default function TopNav() {
             </div>
           )}
 
-          {currentRole === 'receptionist' && (
+          {effectiveRole === 'receptionist' && (
             <div
               className="flex items-center gap-2 h-9 pl-1 pr-3 rounded-full"
               style={{ background: 'rgba(74,101,79,0.07)' }}
@@ -201,7 +205,7 @@ export default function TopNav() {
           )}
 
           {/* Logout icon button */}
-          {currentRole && (
+          {(effectiveRole === 'patient' || effectiveRole === 'receptionist') && (
             <button
               onClick={handleLogout}
               className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted transition-all duration-200 hover:bg-black/6 hover:text-ink active:scale-90 cursor-pointer border-0 bg-transparent"
@@ -214,7 +218,7 @@ export default function TopNav() {
       </div>
 
       {/* ── Mobile bottom nav tabs (md:hidden) ─────────────────── */}
-      {!isGateway && currentRole && navLinks.length > 0 && (
+      {!isGateway && (effectiveRole === 'patient' || effectiveRole === 'receptionist') && navLinks.length > 0 && (
         <nav
           className="md:hidden flex items-center justify-around h-14 border-t"
           style={{

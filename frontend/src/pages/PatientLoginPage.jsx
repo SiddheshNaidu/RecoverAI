@@ -29,10 +29,10 @@ export default function PatientLoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-surface flex items-center justify-center px-6 py-12 md:px-12 relative overflow-hidden">
+    <main className="min-h-screen bg-surface flex items-center justify-center px-6 py-20 md:px-12 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: 'radial-gradient(circle at 18% 20%, rgba(141,170,145,0.25), transparent 35%), radial-gradient(circle at 85% 85%, rgba(74,101,79,0.18), transparent 45%)' }} />
 
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 rounded-[2.2rem] overflow-hidden shadow-ambient border border-outline-variant/20 bg-white/80 backdrop-blur-md animate-fade-up relative z-10">
+      <div className="w-full max-w-5xl mt-8 lg:mt-10 grid grid-cols-1 lg:grid-cols-2 rounded-[2.2rem] overflow-hidden shadow-ambient border border-outline-variant/20 bg-white/80 backdrop-blur-md animate-fade-up relative z-10">
         <section className="p-10 md:p-12 bg-gradient-to-br from-[#2f3d31] via-[#3d5442] to-[#5c7a62] text-white flex flex-col justify-between gap-8">
           <div>
             <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
