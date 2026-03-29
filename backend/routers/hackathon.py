@@ -435,9 +435,9 @@ async def patient_daily_plan(
             p_res = (
                 sb.table("patients")
                 .select(
-                    "id,name,procedure,discharge_date,recovery_total_days,recovery_current_day,phase_label,phone"
+                    "id,public_id,name,procedure,discharge_date,recovery_total_days,recovery_current_day,phase_label,phone"
                 )
-                .eq("id", patient_id)
+                .or_(f"id.eq.{patient_id},public_id.eq.{patient_id}")
                 .single()
                 .execute()
             )
@@ -517,9 +517,9 @@ async def adapt_plan_after_checkin(
             p_res = (
                 sb_seed.table("patients")
                 .select(
-                    "id,name,procedure,discharge_date,recovery_total_days,recovery_current_day,phase_label,phone"
+                    "id,public_id,name,procedure,discharge_date,recovery_total_days,recovery_current_day,phase_label,phone"
                 )
-                .eq("id", patient_id)
+                .or_(f"id.eq.{patient_id},public_id.eq.{patient_id}")
                 .single()
                 .execute()
             )
@@ -927,6 +927,23 @@ async def create_patient(
                         f"Protocol task insert failed ({persist_exc})"
                     )
 
+        if sb is not None:
+            traj_points = []
+            total_days = patient_row["recovery_total_days"]
+            for d in range(1, total_days + 1):
+                # Simple linear recovery model: start at 8, go down to 2
+                expected = max(2, 8 - (d - 1) * (6 / total_days))
+                traj_points.append({
+                    "patient_id": patient_id,
+                    "day_number": d,
+                    "expected_pain": round(expected, 1),
+                    "actual_pain": round(expected, 1) if d == 1 else None
+                })
+            try:
+                sb.table("recovery_trajectory").insert(traj_points).execute()
+            except Exception as persist_exc:  # noqa: BLE001
+                persistence_warnings.append(f"Trajectory insert failed ({persist_exc})")
+
         phone_key = profile["patient_phone"]
         if phone_key and body.patient_pin and body.patient_pin.isdigit() and len(body.patient_pin) >= 4:
             pin_hash = _hash_pin(body.patient_pin)
@@ -969,6 +986,7 @@ async def create_patient(
         response: dict[str, Any] = {
             "patient": {
                 "id": patient_id,
+                "public_id": str(p_res.data[0].get("public_id") if p_res.data else ""),
                 "name": body.name,
                 "surgery_type": surgery,
                 "discharge_date": body.discharge_date,
