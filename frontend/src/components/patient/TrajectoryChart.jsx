@@ -32,14 +32,26 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function TrajectoryChart({ data = DEMO_DATA }) {
+export default function TrajectoryChart({ data }) {
+  const empty = Array.isArray(data) && data.length === 0;
+  const series = data === undefined ? DEMO_DATA : data;
+  if (empty) {
+    return (
+      <div className="flex flex-col gap-2">
+        <h3 className="font-inter text-xs uppercase tracking-widest font-bold text-ink-muted mb-2">
+          Recovery Trajectory
+        </h3>
+        <p className="font-inter text-sm text-ink-muted">No trajectory points in the database yet.</p>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-2">
       <h3 className="font-inter text-xs uppercase tracking-widest font-bold text-ink-muted mb-2">
         Recovery Trajectory
       </h3>
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="expectedGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#c2c8c0" stopOpacity={0.3} />

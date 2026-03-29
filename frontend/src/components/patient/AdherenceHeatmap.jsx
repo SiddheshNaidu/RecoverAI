@@ -2,19 +2,19 @@
  * AdherenceHeatmap — 7-day medication adherence grid
  * Color: green = taken, red = missed, gray = upcoming
  */
-const DEMO_MEDS = [
-  { name: 'Amoxicillin 500mg', critical: true,  days: [true, true, false, true, true, true, null] },
-  { name: 'Paracetamol 650mg', critical: false, days: [true, true, true, true, null, null, null] },
-];
+const DAY_LABELS = ["D1", "D2", "D3", "D4", "D5", "D6", "D7"];
 
-const DAY_LABELS = ['D1','D2','D3','D4','D5','D6','D7'];
+export default function AdherenceHeatmap({ medications }) {
+  const rows = medications?.length ? medications : [];
 
-export default function AdherenceHeatmap({ medications = DEMO_MEDS }) {
   return (
     <div className="flex flex-col gap-4">
       <h3 className="font-inter text-xs uppercase tracking-widest font-bold text-ink-muted mb-2">
         7-Day Adherence
       </h3>
+      {rows.length === 0 && (
+        <p className="font-inter text-sm text-ink-muted">No medication logs for the last 7 days.</p>
+      )}
 
       {/* Day column headers */}
       <div className="grid gap-1" style={{ gridTemplateColumns: `1fr repeat(7, 2rem)` }}>
@@ -24,7 +24,7 @@ export default function AdherenceHeatmap({ medications = DEMO_MEDS }) {
         ))}
       </div>
 
-      {medications.map((med) => (
+      {rows.map((med) => (
         <div key={med.name} className="grid items-center gap-1" style={{ gridTemplateColumns: `1fr repeat(7, 2rem)` }}>
           <div className="flex items-center gap-2 pr-3">
             {med.critical && (
