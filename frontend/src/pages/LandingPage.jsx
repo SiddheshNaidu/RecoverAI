@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const FEATURES = [
   { icon: 'mic',               label: 'Voice Check-ins',     desc: 'Hindi, Marathi, English — patients speak naturally' },
@@ -34,7 +35,13 @@ export default function LandingPage() {
     <main className="min-h-screen bg-surface flex flex-col">
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 md:pt-32 md:pb-28 relative overflow-hidden">
+      <motion.section 
+        id="hero"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 md:pt-32 md:pb-28 relative overflow-hidden"
+      >
 
         {/* Background ambient glow */}
         <div className="absolute inset-0 pointer-events-none">
@@ -80,50 +87,72 @@ export default function LandingPage() {
         </p>
 
         {/* ── TWO DOORS ─── */}
-        <div className="flex flex-col sm:flex-row gap-5 mt-12 w-full max-w-md animate-fade-up-delay">
-          <Link
-            to="/onboard"
-            className="flex-1 flex flex-col items-center gap-3 p-7 rounded-[1.75rem] no-underline group transition-all duration-300 hover:-translate-y-1"
-            style={{
-              background: 'linear-gradient(145deg, #3d5442, #4a654f)',
-              boxShadow: '8px 8px 24px rgba(37,53,41,0.45), -4px -4px 16px rgba(141,170,145,0.25), inset 0 1px 0 rgba(255,255,255,0.12)',
-            }}
-          >
-            <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[28px]">personal_injury</span>
-            </div>
-            <div className="text-center">
-              <p className="font-heading text-white text-xl font-bold">I'm a Patient</p>
-              <p className="font-inter text-white/70 text-sm mt-1">Start my recovery plan</p>
-            </div>
-            <span className="material-symbols-outlined text-white/60 text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </Link>
-
-          <Link
-            to="/login"
-            className="flex-1 flex flex-col items-center gap-3 p-7 rounded-[1.75rem] no-underline group transition-all duration-300 hover:-translate-y-1 bg-white"
-            style={{
-              boxShadow: '0 8px 32px rgba(28,28,17,0.1)',
-            }}
-          >
-            <div className="w-14 h-14 rounded-2xl bg-surface-low flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-[28px]">local_hospital</span>
-            </div>
-            <div className="text-center">
-              <p className="font-heading text-ink text-xl font-bold">Hospital Staff</p>
-              <p className="font-inter text-ink-muted text-sm mt-1">Receptionist portal</p>
-            </div>
-            <span className="material-symbols-outlined text-ink-muted text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </Link>
-        </div>
-
-        <Link
-          to="/patient-login"
-          className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/70 border border-outline-variant/30 text-ink no-underline font-inter text-sm font-semibold hover:bg-white transition-colors"
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex flex-col sm:flex-row gap-5 mt-12 w-full max-w-md"
         >
-          <span className="material-symbols-outlined text-[18px] text-primary">login</span>
-          Existing patient? Login with PIN
-        </Link>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+            <Link
+              to="/onboard"
+              className="flex flex-col items-center h-full gap-3 p-7 rounded-[1.75rem] no-underline group transition-all duration-300"
+              style={{
+                background: '#e6ece1',
+                border: '1px solid rgba(107, 143, 113, 0.2)',
+                boxShadow: '0 4px 20px rgba(37,53,41,0.04)',
+              }}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#3d5442] text-[28px] font-bold">personal_injury</span>
+              </div>
+              <div className="text-center">
+                <p className="font-heading text-[#2e3d32] text-xl font-bold">I'm a Patient</p>
+                <p className="font-inter text-[#4a654f] text-sm mt-1 font-medium">Start my recovery plan</p>
+              </div>
+              <span className="material-symbols-outlined text-[#4a654f] text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </Link>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+            <Link
+              to="/login"
+              className="flex flex-col items-center h-full gap-3 p-7 rounded-[1.75rem] no-underline group transition-all duration-300"
+              style={{
+                background: '#fcfbf7',
+                border: '1px solid rgba(28, 28, 17, 0.05)',
+                boxShadow: '0 4px 20px rgba(28,28,17,0.03)',
+              }}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-[#3d5442]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#3d5442] text-[28px] font-bold">local_hospital</span>
+              </div>
+              <div className="text-center">
+                <p className="font-heading text-ink text-xl font-bold">Hospital Staff</p>
+                <p className="font-inter text-ink-muted text-sm mt-1 font-medium">Receptionist portal</p>
+              </div>
+              <span className="material-symbols-outlined text-ink-muted text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </Link>
+          </motion.div>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mt-6">
+          <Link
+            to="/patient-login"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full no-underline font-inter text-sm font-semibold transition-colors"
+            style={{
+              background: 'rgba(255, 255, 255, 0.5)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.6)',
+              color: '#2e3d32',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            }}
+          >
+            <span className="material-symbols-outlined text-[18px] text-[#4a654f]">login</span>
+            Existing patient? Login with PIN
+          </Link>
+        </motion.div>
 
         {/* Live counter */}
         <div className="flex items-center gap-2 mt-10 animate-fade-up-delay-2">
@@ -133,36 +162,55 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3 animate-fade-up-delay-2">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="mt-8 flex flex-wrap justify-center gap-3 animate-fade-up-delay-2"
+        >
           {TRUST_BADGES.map((b) => (
             <div
               key={b.label}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/75 border border-outline-variant/20"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/40 backdrop-blur-md border border-white/60 shadow-sm"
             >
-              <span className="material-symbols-outlined text-primary text-[18px]">{b.icon}</span>
-              <span className="font-inter text-sm text-ink-muted font-medium">{b.label}</span>
+              <span className="material-symbols-outlined text-[#3d5442] text-[18px]">{b.icon}</span>
+              <span className="font-inter text-sm text-[#2e3d32] font-semibold">{b.label}</span>
             </div>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* ── STATS STRIP ─────────────────────────────────────── */}
-      <section className="grid grid-cols-3 border-y border-outline-variant/15 animate-fade-up-delay">
+      <motion.section 
+        id="stats"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.7 }}
+        className="grid grid-cols-3 border-y border-outline-variant/15 scroll-mt-24"
+      >
         {STATS.map((s, i) => (
           <div key={i} className={`flex flex-col items-center py-10 px-4 text-center ${i < 2 ? 'border-r border-outline-variant/15' : ''}`}>
             <span
-              className="font-heading font-extrabold text-primary"
+              className="font-heading font-extrabold text-[#3d5442]"
               style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1 }}
             >
               {s.num}
             </span>
-            <p className="font-inter text-sm text-ink-muted mt-2 max-w-[120px]">{s.label}</p>
+            <p className="font-inter text-sm text-ink-muted mt-2 max-w-[120px] font-medium">{s.label}</p>
           </div>
         ))}
-      </section>
+      </motion.section>
 
       {/* ── FEATURES GRID ──────────────────────────────────── */}
-      <section className="py-20 px-6 md:px-12 lg:px-24 max-w-[1100px] mx-auto w-full">
+      <motion.section 
+        id="features"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="py-20 px-6 md:px-12 lg:px-24 max-w-[1100px] mx-auto w-full relative scroll-mt-24"
+      >
         <div className="text-center mb-14">
           <h2
             className="font-heading font-bold text-ink mb-4"
@@ -177,44 +225,69 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {FEATURES.map((f, i) => (
-            <div
+            <motion.div
               key={i}
-              className="flex flex-col gap-5 p-8 rounded-[2rem] bg-white group hover:-translate-y-1 transition-all duration-300 animate-fade-up"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="flex flex-col gap-5 p-8 rounded-[2rem] group transition-all duration-300"
               style={{
-                boxShadow: '0 4px 24px rgba(28,28,17,0.06)',
-                animationDelay: `${i * 80}ms`,
+                background: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.8)',
+                boxShadow: '0 8px 32px rgba(28,28,17,0.06)',
               }}
             >
-              <div className="w-14 h-14 rounded-2xl bg-primary/8 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                <span className="material-symbols-outlined text-primary group-hover:text-white text-[28px] transition-colors">{f.icon}</span>
+              <div className="w-14 h-14 rounded-2xl bg-[#3d5442]/10 flex items-center justify-center group-hover:bg-[#4a654f] transition-all duration-300">
+                <span className="material-symbols-outlined text-[#3d5442] group-hover:text-white text-[28px] transition-colors">{f.icon}</span>
               </div>
               <div>
                 <h3 className="font-heading text-base font-bold text-ink mb-1">{f.label}</h3>
                 <p className="font-inter text-sm text-ink-muted leading-relaxed">{f.desc}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── LANGUAGE STRIP ─────────────────────────────────── */}
-      <section className="py-12 px-6 bg-primary/4 border-y border-primary/10">
+      <motion.section 
+        id="languages"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+        className="py-16 px-6 bg-gradient-to-b from-[#3d5442]/5 to-transparent border-y border-[#3d5442]/10 scroll-mt-24"
+      >
         <div className="max-w-[900px] mx-auto text-center">
-          <p className="font-inter text-sm uppercase tracking-widest font-bold text-primary mb-6">
+          <p className="font-inter text-sm uppercase tracking-widest font-bold text-[#3d5442] mb-8">
             Powered by Sarvam AI — No Language Barrier
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            {['हिंदी', 'मराठी', 'English', 'বাংলা', 'தமிழ்', 'తెలుగు', 'ਪੰਜਾਬੀ', 'ಕನ್ನಡ'].map(lang => (
-              <span
+            {['हिंदी', 'मराठी', 'English', 'বাংলা', 'தமிழ்', 'తెలుగు', 'ਪੰਜਾਬੀ', 'ಕನ್ನಡ'].map((lang, i) => (
+              <motion.span
                 key={lang}
-                className="px-5 py-2.5 rounded-full bg-white font-inter text-sm font-medium text-ink shadow-sm"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.05 }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="px-6 py-3 rounded-full font-inter text-sm font-semibold text-[#2e3d32] shadow-sm select-none cursor-default"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255, 255, 255, 0.5)',
+                }}
               >
                 {lang}
-              </span>
+              </motion.span>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── FOOTER ─────────────────────────────────────────── */}
       <footer className="py-10 text-center">

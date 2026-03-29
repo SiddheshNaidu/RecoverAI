@@ -5,7 +5,7 @@
  */
 export default function StatusOrb({ risk = 'stable', size = 'lg' }) {
   const colorMap = {
-    stable:   { bg: 'bg-primary',   shadow: 'shadow-[0_0_24px_rgba(74,101,79,0.4)]',  icon: 'ecg_heart' },
+    stable:   { bg: 'bg-primary',   shadow: 'shadow-[0_0_24px_rgba(45, 106, 79,0.4)]',  icon: 'ecg_heart' },
     moderate: { bg: 'bg-[#d97706]', shadow: 'shadow-[0_0_24px_rgba(217,119,6,0.4)]',  icon: 'warning' },
     critical: { bg: 'bg-error',     shadow: 'shadow-[0_0_32px_rgba(186,26,26,0.5)]',   icon: 'emergency' },
   };

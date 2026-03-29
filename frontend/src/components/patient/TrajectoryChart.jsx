@@ -18,7 +18,7 @@ const DEMO_DATA = [
 ];
 
 const EXPECTED_COLOR = '#94a3b8'; // slate-400
-const ACTUAL_COLOR = '#4a654f'; // forest green
+const ACTUAL_COLOR = '#3d5442'; // forest green
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;

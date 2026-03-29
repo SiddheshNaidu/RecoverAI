@@ -7,6 +7,8 @@ import { AppProvider } from "./context/AppContext";
 import { lazy, Suspense } from "react";
 import TopNav from "./components/TopNav";
 
+import SmoothScroll from "./components/SmoothScroll";
+
 // ── Patient flow ──────────────────────────────────────────────────────────
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const OnboardPage = lazy(() => import("./pages/OnboardPage"));
@@ -36,11 +38,12 @@ function PageLoader() {
 export default function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <div className="flex flex-col min-h-screen">
-            <TopNav />
-            <main className="flex-1 flex flex-col">
+      <SmoothScroll>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <div className="flex flex-col min-h-screen">
+              <TopNav />
+              <main className="flex-1 flex flex-col">
               <Routes>
                 {/* Public */}
                 <Route path="/" element={<LandingPage />} />
@@ -67,6 +70,7 @@ export default function App() {
           </div>
         </Suspense>
       </BrowserRouter>
+      </SmoothScroll>
     </AppProvider>
   );
 }

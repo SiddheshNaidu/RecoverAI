@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 
 const COLORS = {
-  low:      '#4a654f',   // sage — score 0–3
+  low:      '#3d5442',   // sage — score 0–3
   moderate: '#d97706',   // amber — score 4–6
   high:     '#dc2626',   // red — score 7–10
 };

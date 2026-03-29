@@ -533,7 +533,7 @@ export default function OnboardPage() {
       
       {/* Ambient background blur for wizard focus */}
       {step === 2 && mode === 'manual' && (
-         <div className="fixed top-[-50%] left-[-10%] w-[100vw] h-[100vh] bg-[radial-gradient(ellipse_at_top_left,_rgba(141,170,145,0.15),_transparent_70%)] pointer-events-none -z-10" />
+         <div className="fixed top-[-50%] left-[-10%] w-[100vw] h-[100vh] bg-[radial-gradient(ellipse_at_top_left,_rgba(82, 183, 136,0.15),_transparent_70%)] pointer-events-none -z-10" />
       )}
 
       {step === 2 && mode === 'manual' && manualSubStep === 4 && (
