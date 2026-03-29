@@ -1,109 +1,148 @@
 /**
  * TrajectoryChart — Actual vs Expected recovery curve (Recharts)
- * PRD 4.6: Recovery trajectory chart
+ * PRD 4.6: Recovery trajectory chart — smoothed with natural interpolation
  */
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis,
-  Tooltip, Legend, Area, AreaChart, CartesianGrid
+  ResponsiveContainer, XAxis, YAxis,
+  Tooltip, Area, AreaChart
 } from 'recharts';
 
-// Simulated actual pain data for demo
+// Demo data for empty/loading state
 const DEMO_DATA = [
   { day: 1, expected: 8, actual: 8 },
-  { day: 2, expected: 7, actual: 7 },
-  { day: 3, expected: 5, actual: 6 },
-  { day: 4, expected: 4, actual: 3 },
-  { day: 5, expected: 3, actual: null },
-  { day: 6, expected: 2, actual: null },
-  { day: 7, expected: 2, actual: null },
+  { day: 3, expected: 6.8, actual: 7.2 },
+  { day: 5, expected: 5.5, actual: 5 },
+  { day: 7, expected: 4.2, actual: 4.5 },
+  { day: 10, expected: 3, actual: null },
+  { day: 14, expected: 2, actual: null },
 ];
+
+const EXPECTED_COLOR = '#94a3b8'; // slate-400
+const ACTUAL_COLOR = '#4a654f'; // forest green
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white rounded-xl p-3 shadow-ambient text-sm font-inter border border-outline-variant/20">
-      <p className="font-bold text-ink mb-1">Day {label}</p>
-      {payload.map(p => (
-        <p key={p.name} style={{ color: p.color }}>
-          {p.name}: {p.value}/10
-        </p>
+    <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-ambient text-sm font-inter border border-outline-variant/20">
+      <p className="font-semibold text-ink mb-2 text-xs uppercase tracking-wider">Day {label}</p>
+      {payload.map(p => p.value !== null && (
+        <div key={p.name} className="flex items-center gap-2 mb-1">
+          <span className="w-2 h-2 rounded-full inline-block" style={{ background: p.color }} />
+          <span className="text-ink-muted">{p.name}:</span>
+          <span className="font-semibold" style={{ color: p.color }}>{p.value}/10</span>
+        </div>
       ))}
     </div>
   );
 };
 
+const CustomDot = ({ cx, cy, payload, dataKey }) => {
+  if (payload[dataKey] === null || payload[dataKey] === undefined) return null;
+  const color = dataKey === 'actual' ? ACTUAL_COLOR : EXPECTED_COLOR;
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={6} fill={color} opacity={0.15} />
+      <circle cx={cx} cy={cy} r={3} fill={color} />
+    </g>
+  );
+};
+
 export default function TrajectoryChart({ data }) {
-  const empty = Array.isArray(data) && data.length === 0;
-  const series = data === undefined ? DEMO_DATA : data;
-  if (empty) {
+  const series = (data === undefined || data === null) ? DEMO_DATA : data;
+  const isEmpty = Array.isArray(series) && series.length === 0;
+
+  if (isEmpty) {
     return (
       <div className="flex flex-col gap-2">
         <h3 className="font-inter text-xs uppercase tracking-widest font-bold text-ink-muted mb-2">
           Recovery Trajectory
         </h3>
-        <p className="font-inter text-sm text-ink-muted">No trajectory points in the database yet.</p>
+        <p className="font-inter text-sm text-ink-muted">No trajectory points recorded yet.</p>
       </div>
     );
   }
+
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="font-inter text-xs uppercase tracking-widest font-bold text-ink-muted mb-2">
-        Recovery Trajectory
-      </h3>
-      <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={series} margin={{ top: 10, right: 16, left: 8, bottom: 24 }}>
+    <div className="flex flex-col gap-3">
+      {/* Header + Legend */}
+      <div className="flex items-center justify-between">
+        <h3 className="font-inter text-xs uppercase tracking-widest font-bold text-ink-muted">
+          Recovery Trajectory
+        </h3>
+        <div className="flex gap-4">
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-0 border-t-2 border-dashed" style={{ borderColor: EXPECTED_COLOR }} />
+            <span className="font-inter text-xs text-ink-muted">Expected</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-0.5 rounded-full" style={{ background: ACTUAL_COLOR }} />
+            <span className="font-inter text-xs text-ink-muted">Actual</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Smoothed area chart */}
+      <ResponsiveContainer width="100%" height={220}>
+        <AreaChart data={series} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="expectedGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#c2c8c0" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#c2c8c0" stopOpacity={0} />
+              <stop offset="5%" stopColor={EXPECTED_COLOR} stopOpacity={0.15} />
+              <stop offset="95%" stopColor={EXPECTED_COLOR} stopOpacity={0} />
             </linearGradient>
             <linearGradient id="actualGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#4a654f" stopOpacity={0.25} />
-              <stop offset="95%" stopColor="#4a654f" stopOpacity={0} />
+              <stop offset="5%" stopColor={ACTUAL_COLOR} stopOpacity={0.22} />
+              <stop offset="95%" stopColor={ACTUAL_COLOR} stopOpacity={0} />
             </linearGradient>
           </defs>
+
           <XAxis
             dataKey="day"
             tickFormatter={(v) => `D${v}`}
-            tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#a0a8a0' }}
+            tick={{ fontFamily: 'Inter', fontSize: 10, fill: '#a0aba0' }}
             tickLine={false}
             axisLine={false}
-            label={{ value: 'Recovery Day (X-axis)', position: 'insideBottom', offset: -8, fill: '#7b857b', fontSize: 11 }}
+            interval="preserveStartEnd"
           />
           <YAxis
             domain={[0, 10]}
-            label={{ value: 'Pain Score / 10 (Y-axis)', angle: -90, position: 'insideLeft', fill: '#7b857b', fontSize: 11 }}
-            tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#a0a8a0' }}
+            tickCount={6}
+            tick={{ fontFamily: 'Inter', fontSize: 10, fill: '#a0aba0' }}
             tickLine={false}
             axisLine={false}
           />
-          <Tooltip content={<CustomTooltip />} />
+
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e2e8e2', strokeWidth: 1.5 }} />
+
+          {/* Expected — dashed, muted */}
           <Area
-            type="monotone" dataKey="expected" name="Expected"
-            stroke="#c2c8c0" strokeWidth={2} fill="url(#expectedGrad)"
-            dot={false} activeDot={{ r: 5 }} strokeDasharray="6 3"
+            type="natural"
+            dataKey="expected"
+            name="Expected"
+            stroke={EXPECTED_COLOR}
+            strokeWidth={1.5}
+            strokeDasharray="6 4"
+            fill="url(#expectedGrad)"
+            dot={false}
+            activeDot={{ r: 5, fill: EXPECTED_COLOR, stroke: 'white', strokeWidth: 2 }}
           />
+
+          {/* Actual — solid, prominent */}
           <Area
-            type="monotone" dataKey="actual" name="Actual"
-            stroke="#4a654f" strokeWidth={2.5} fill="url(#actualGrad)"
-            dot={{ fill: '#4a654f', strokeWidth: 0, r: 4 }}
-            activeDot={{ r: 6, fill: '#4a654f' }}
+            type="natural"
+            dataKey="actual"
+            name="Actual"
+            stroke={ACTUAL_COLOR}
+            strokeWidth={2.5}
+            fill="url(#actualGrad)"
+            dot={<CustomDot dataKey="actual" />}
+            activeDot={{ r: 7, fill: ACTUAL_COLOR, stroke: 'white', strokeWidth: 2 }}
             connectNulls={false}
           />
         </AreaChart>
       </ResponsiveContainer>
-      <div className="flex gap-6 justify-center mt-1">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-0.5 bg-[#c2c8c0]" style={{borderTop: '2px dashed #c2c8c0'}} />
-          <span className="font-inter text-xs text-ink-muted">Expected</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-0.5 bg-primary" />
-          <span className="font-inter text-xs text-ink-muted">Actual</span>
-        </div>
-      </div>
-      <p className="font-inter text-[11px] text-ink-muted text-center mt-1">
-        X-axis = recovery days · Y-axis = pain score (0 = best, 10 = worst)
+
+      <p className="font-inter text-[10px] text-ink-muted text-center">
+        Days since discharge · Pain score (0 = no pain, 10 = worst)
       </p>
     </div>
   );
