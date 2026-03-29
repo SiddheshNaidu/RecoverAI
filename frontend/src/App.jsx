@@ -3,25 +3,25 @@
  * All routes from PRD §11 are wired here.
  */
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppProvider }   from "./context/AppContext";
+import { AppProvider } from "./context/AppContext";
 import { lazy, Suspense } from "react";
 import TopNav from "./components/TopNav";
 
 // ── Patient flow ──────────────────────────────────────────────────────────
-const LandingPage       = lazy(() => import("./pages/LandingPage"));
-const OnboardPage       = lazy(() => import("./pages/OnboardPage"));
-const PatientLoginPage  = lazy(() => import("./pages/PatientLoginPage"));
-const PatientHomePage   = lazy(() => import("./pages/PatientHomePage"));
-const RecoveryPlanPage  = lazy(() => import("./pages/RecoveryPlanPage"));
-const CheckinPage       = lazy(() => import("./pages/CheckinPage"));
-const HistoryPage       = lazy(() => import("./pages/HistoryPage"));
-const SOSPage           = lazy(() => import("./pages/SOSPage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const OnboardPage = lazy(() => import("./pages/OnboardPage"));
+const PatientLoginPage = lazy(() => import("./pages/PatientLoginPage"));
+const PatientHomePage = lazy(() => import("./pages/PatientHomePage"));
+const RecoveryPlanPage = lazy(() => import("./pages/RecoveryPlanPage"));
+const CheckinPage = lazy(() => import("./pages/CheckinPage"));
+const HistoryPage = lazy(() => import("./pages/HistoryPage"));
+const SOSPage = lazy(() => import("./pages/SOSPage"));
 
 // ── Receptionist flow ─────────────────────────────────────────────────────
-const LoginPage                  = lazy(() => import("./pages/LoginPage"));
-const ReceptionistDashboardPage  = lazy(() => import("./pages/ReceptionistDashboardPage"));
-const RegisterPatientPage        = lazy(() => import("./pages/RegisterPatientPage"));
-const ReceptionistPatientView    = lazy(() => import("./pages/ReceptionistPatientView"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const ReceptionistDashboardPage = lazy(() => import("./pages/ReceptionistDashboardPage"));
+const RegisterPatientPage = lazy(() => import("./pages/RegisterPatientPage"));
+const ReceptionistPatientView = lazy(() => import("./pages/ReceptionistPatientView"));
 
 function PageLoader() {
   return (
@@ -43,25 +43,25 @@ export default function App() {
             <main className="flex-1 flex flex-col">
               <Routes>
                 {/* Public */}
-                <Route path="/"                          element={<LandingPage />} />
+                <Route path="/" element={<LandingPage />} />
 
                 {/* Patient flow */}
-                <Route path="/onboard"                   element={<OnboardPage />} />
-                <Route path="/patient-login"             element={<PatientLoginPage />} />
-                <Route path="/patient/:id"               element={<PatientHomePage />} />
-                <Route path="/patient/:id/plan"          element={<RecoveryPlanPage />} />
-                <Route path="/patient/:id/checkin"       element={<CheckinPage />} />
-                <Route path="/patient/:id/history"       element={<HistoryPage />} />
-                <Route path="/patient/:id/sos"           element={<SOSPage />} />
+                <Route path="/onboard" element={<OnboardPage />} />
+                <Route path="/patient-login" element={<PatientLoginPage />} />
+                <Route path="/patient/:publicId" element={<PatientHomePage />} />
+                <Route path="/patient/:publicId/plan" element={<RecoveryPlanPage />} />
+                <Route path="/patient/:publicId/checkin" element={<CheckinPage />} />
+                <Route path="/patient/:publicId/history" element={<HistoryPage />} />
+                <Route path="/patient/:publicId/sos" element={<SOSPage />} />
 
                 {/* Receptionist flow */}
-                <Route path="/login"                     element={<LoginPage />} />
-                <Route path="/receptionist"              element={<ReceptionistDashboardPage />} />
-                <Route path="/receptionist/new"          element={<RegisterPatientPage />} />
-                <Route path="/receptionist/patient/:id"  element={<ReceptionistPatientView />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/receptionist" element={<ReceptionistDashboardPage />} />
+                <Route path="/receptionist/new" element={<RegisterPatientPage />} />
+                <Route path="/receptionist/patient/:publicId" element={<ReceptionistPatientView />} />
 
                 {/* Catch-all */}
-                <Route path="*"                          element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
           </div>
