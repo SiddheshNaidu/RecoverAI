@@ -20,7 +20,7 @@ function entryRiskLabel(summary) {
 }
 
 export default function HistoryPage() {
-  const { id: paramId } = useParams();
+  const { publicId } = useParams();
   const { currentPatient } = useApp();
   const [entries, setEntries] = useState([]);
   const [trajectory, setTrajectory] = useState([]);
@@ -40,7 +40,20 @@ export default function HistoryPage() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        const pid = user?.id || paramId || currentPatient?.id;
+
+        let pid = user?.id || currentPatient?.id;
+
+        // If we don't have an internal ID yet, look it up by publicId
+        if (!pid && publicId) {
+          const { data: pat, error: pe } = await supabase
+            .from("patients")
+            .select("id")
+            .eq("public_id", publicId)
+            .single();
+          if (pe) throw pe;
+          pid = pat.id;
+        }
+
         if (!pid) throw new Error("Sign in or open from your patient link.");
 
         const [{ data: journal, error: e1 }, { data: traj, error: e2 }, { data: meds, error: e3 }] =
@@ -78,7 +91,7 @@ export default function HistoryPage() {
       }
     }
     load();
-  }, [paramId, currentPatient?.id]);
+  }, [publicId, currentPatient?.id]);
 
   const chartData = useMemo(() => trajectoryToChartData(trajectory), [trajectory]);
   const heatmapMeds = useMemo(() => buildAdherenceForHeatmap(medRows), [medRows]);
@@ -142,9 +155,9 @@ export default function HistoryPage() {
               const orb = riskLevelToOrb(risk === "critical" ? "CRITICAL" : risk === "moderate" ? "MODERATE" : "LOW");
               const dateLabel = entry.entry_date
                 ? new Date(`${entry.entry_date}T12:00:00`).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })
+                  month: "short",
+                  day: "numeric",
+                })
                 : "—";
               return (
                 <div
@@ -154,9 +167,8 @@ export default function HistoryPage() {
                 >
                   <div className="flex flex-col items-center pt-2">
                     <div
-                      className={`w-4 h-4 rounded-full z-10 ${
-                        orb === "critical" ? "bg-error" : orb === "moderate" ? "bg-[#eab308]" : "bg-primary"
-                      }`}
+                      className={`w-4 h-4 rounded-full z-10 ${orb === "critical" ? "bg-error" : orb === "moderate" ? "bg-[#eab308]" : "bg-primary"
+                        }`}
                     />
                   </div>
                   <div className="flex-1">

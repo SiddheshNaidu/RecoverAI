@@ -27,6 +27,7 @@ export default function RegisterPatientPage() {
   const [pipeStep, setPipeStep] = useState(0);
   const [submitError, setSubmitError] = useState(null);
   const [createdId, setCreatedId] = useState(null);
+  const [createdPublicId, setCreatedPublicId] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -85,7 +86,7 @@ export default function RegisterPatientPage() {
         })
         .eq("id", patientId);
     }
-    return patientId;
+    return { id: patientId, publicId: res?.patient?.public_id || patientId };
   }
 
   const handleGenerate = async (e) => {
@@ -98,8 +99,8 @@ export default function RegisterPatientPage() {
     try {
       await new Promise((r) => setTimeout(r, 400));
       setPipeStep(1);
-      const patientId = await persistPatient();
-      setCreatedId(patientId);
+      const { id: patientId, publicId } = await persistPatient();
+      setCreatedId(publicId || patientId);
       setPipeStep(2);
       await new Promise((r) => setTimeout(r, 350));
       setStep(3);
@@ -223,23 +224,20 @@ export default function RegisterPatientPage() {
                     key={s.id}
                     type="button"
                     onClick={() => update("surgeryType", s.id)}
-                    className={`flex flex-col items-center gap-3 p-5 rounded-2xl border text-center transition-all ${
-                      form.surgeryType === s.id
-                        ? "bg-primary/5 border-primary shadow-sm scale-[1.02]"
-                        : "border-outline-variant/20 hover:border-primary/30 bg-surface-low"
-                    }`}
+                    className={`flex flex-col items-center gap-3 p-5 rounded-2xl border text-center transition-all ${form.surgeryType === s.id
+                      ? "bg-primary/5 border-primary shadow-sm scale-[1.02]"
+                      : "border-outline-variant/20 hover:border-primary/30 bg-surface-low"
+                      }`}
                   >
                     <span
-                      className={`material-symbols-outlined text-[28px] ${
-                        form.surgeryType === s.id ? "text-primary" : "text-ink-muted"
-                      }`}
+                      className={`material-symbols-outlined text-[28px] ${form.surgeryType === s.id ? "text-primary" : "text-ink-muted"
+                        }`}
                     >
                       {s.icon}
                     </span>
                     <span
-                      className={`font-inter text-sm font-medium ${
-                        form.surgeryType === s.id ? "text-primary" : "text-ink"
-                      }`}
+                      className={`font-inter text-sm font-medium ${form.surgeryType === s.id ? "text-primary" : "text-ink"
+                        }`}
                     >
                       {s.label}
                     </span>
@@ -314,17 +312,15 @@ export default function RegisterPatientPage() {
                   className={`flex items-center gap-4 transition-all duration-500 ${i > pipeStep ? "opacity-25" : "opacity-100"}`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      i < pipeStep ? "bg-primary" : i === pipeStep ? "bg-primary/20 animate-pulse" : "bg-surface-high"
-                    }`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${i < pipeStep ? "bg-primary" : i === pipeStep ? "bg-primary/20 animate-pulse" : "bg-surface-high"
+                      }`}
                   >
                     {i < pipeStep ? (
                       <span className="material-symbols-outlined text-white text-[18px]">check</span>
                     ) : (
                       <span
-                        className={`material-symbols-outlined text-[18px] ${
-                          i === pipeStep ? "text-primary animate-spin" : "text-ink-muted"
-                        }`}
+                        className={`material-symbols-outlined text-[18px] ${i === pipeStep ? "text-primary animate-spin" : "text-ink-muted"
+                          }`}
                       >
                         {i === pipeStep ? "progress_activity" : "circle"}
                       </span>
