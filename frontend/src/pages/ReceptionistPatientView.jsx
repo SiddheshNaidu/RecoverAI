@@ -15,7 +15,7 @@ import {
 } from "../lib/recoveryMappers";
 
 export default function ReceptionistPatientView() {
-  const { id } = useParams();
+  const { publicId } = useParams();
   const [patient, setPatient] = useState(null);
   const [caregiver, setCaregiver] = useState(null);
   const [trajectory, setTrajectory] = useState([]);
@@ -25,7 +25,7 @@ export default function ReceptionistPatientView() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!publicId) return;
     if (!isSupabaseConfigured() || !supabase) {
       setError("Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY");
       setLoading(false);
@@ -36,12 +36,19 @@ export default function ReceptionistPatientView() {
       try {
         const [
           { data: pat, error: e1 },
+        ] = await Promise.all([
+          supabase.from("patients").select("*").eq("public_id", publicId).single(),
+        ]);
+
+        if (e1) throw e1;
+        const id = pat.id; // Get the internal UUID for other queries
+
+        const [
           { data: cg, error: e2 },
           { data: traj, error: e3 },
           { data: meds, error: e4 },
           { data: alts, error: e5 },
         ] = await Promise.all([
-          supabase.from("patients").select("*").eq("id", id).single(),
           supabase.from("caregivers").select("name, phone, relation").eq("patient_id", id).maybeSingle(),
           supabase
             .from("recovery_trajectory")
@@ -80,7 +87,7 @@ export default function ReceptionistPatientView() {
       }
     }
     fetchPatientDetail();
-  }, [id]);
+  }, [publicId]);
 
   const chartData = useMemo(() => trajectoryToChartData(trajectory), [trajectory]);
   const heatmapMeds = useMemo(() => buildAdherenceForHeatmap(medRows), [medRows]);
@@ -103,10 +110,10 @@ export default function ReceptionistPatientView() {
   const total = p.recovery_total_days ?? 1;
   const dischargeFmt = p.discharge_date
     ? new Date(`${p.discharge_date}T12:00:00`).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
     : "—";
 
   return (
@@ -201,9 +208,9 @@ export default function ReceptionistPatientView() {
                     <span className="font-inter text-xs text-ink-muted shrink-0 pt-1">
                       {a.alert_date
                         ? new Date(`${a.alert_date}T12:00:00`).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })
+                          month: "short",
+                          day: "numeric",
+                        })
                         : "—"}
                     </span>
                     <p className="font-inter text-sm text-ink">{a.message}</p>

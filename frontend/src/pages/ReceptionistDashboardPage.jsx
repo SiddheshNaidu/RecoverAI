@@ -26,7 +26,7 @@ export default function ReceptionistDashboardPage() {
         const [{ data: pats, error: pErr }, { data: appts, error: aErr }] = await Promise.all([
           supabase
             .from("patients")
-            .select("id, name, procedure, recovery_current_day, recovery_total_days, risk_level, phase_label"),
+            .select("id, public_id, name, procedure, recovery_current_day, recovery_total_days, risk_level, phase_label"),
           supabase
             .from("appointments")
             .select("id, appt_date, appt_time, reason, patients(name, recovery_current_day)")
@@ -176,7 +176,7 @@ function PatientRow({ patient: p, delay }) {
 
   return (
     <Link
-      to={`/receptionist/patient/${p.id}`}
+      to={`/receptionist/patient/${p.public_id || p.id}`}
       className="group flex items-center gap-5 px-6 py-5 rounded-2xl no-underline transition-all duration-200 hover:-translate-y-0.5 animate-fade-up"
       style={{
         background: isCritical ? "rgba(186,26,26,0.04)" : "#ffffff",
