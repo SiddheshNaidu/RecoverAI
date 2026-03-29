@@ -6,10 +6,10 @@ import { extractDischargeSummary, createPatientWithPlan } from '../api/client';
 export default function OnboardPage() {
   const navigate = useNavigate();
   const { login, preferredLanguage } = useApp();
-  
+
   const [step, setStep] = useState(1);
   const [mode, setMode] = useState(null); // 'manual' or 'upload'
-  
+
   // Comprehensive Form State for AI Generation
   const [formData, setFormData] = useState({
     condition: '',
@@ -123,16 +123,15 @@ export default function OnboardPage() {
   return (
     <main className="min-h-screen bg-surface flex flex-col pt-8 pb-24 px-6 md:px-12 lg:px-24 overflow-hidden relative">
       <div className="max-w-[1024px] mx-auto w-full flex flex-col flex-1 relative z-10">
-        
+
         {/* Main Progress Bar (Only show in phase 1 or 3, hide during manual wizard to avoid confusion) */}
         {(step === 1 || step === 3 || mode === 'upload') && (
           <div className="w-full flex items-center gap-2 mb-16 lg:mb-24 animate-fade-up">
             {[1, 2, 3].map((i) => (
-              <div 
-                key={i} 
-                className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
-                  step >= i ? 'bg-primary flex-1' : 'bg-surface-high w-16'
-                }`}
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ease-out ${step >= i ? 'bg-primary flex-1' : 'bg-surface-high w-16'
+                  }`}
               />
             ))}
           </div>
@@ -144,15 +143,15 @@ export default function OnboardPage() {
               {apiError}
             </div>
           )}
-          
+
           {/* STEP 1: Select Mode */}
           {step === 1 && (
             <section className="animate-fade-up">
               <h1 className="font-heading text-[2.5rem] md:text-[4rem] leading-[1.1] tracking-tight text-ink mb-12 lg:mb-16">
-                How should we build <br/>
+                How should we build <br />
                 <span className="text-primary italic">your recovery plan?</span>
               </h1>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                 {/* Smart Upload */}
                 <button
@@ -192,7 +191,7 @@ export default function OnboardPage() {
           {/* STEP 2: Comprehensive Manual Interview (Wizard) */}
           {step === 2 && mode === 'manual' && (
             <section className="w-full max-w-3xl mx-auto flex flex-col h-full justify-center animate-fade-up">
-              
+
               {/* Wizard Progress Mini */}
               <div className="flex items-center gap-2 mb-12">
                 {[1, 2, 3, 4].map(idx => (
@@ -201,13 +200,13 @@ export default function OnboardPage() {
               </div>
 
               <div className="min-h-[400px] flex flex-col justify-center">
-                
+
                 {/* SubStep 1: The Core Event */}
                 {manualSubStep === 1 && (
                   <div className="animate-fade-up flex flex-col gap-10">
                     <div>
                       <h2 className="font-heading text-[2rem] md:text-[3rem] tracking-tight text-ink mb-4 leading-tight">
-                        What brings you to <br/><span className="text-primary italic">RecoverAI?</span>
+                        What brings you to <br /><span className="text-primary italic">RecoverAI?</span>
                       </h2>
                       <p className="font-inter text-ink-muted text-lg">Your primary diagnosis dictates the foundation of your protocol.</p>
                     </div>
@@ -215,21 +214,21 @@ export default function OnboardPage() {
                     <div className="flex flex-col gap-8">
                       <div className="flex flex-col gap-3">
                         <label className="font-heading text-lg font-bold text-ink">Primary Condition or Surgery</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           autoFocus
                           value={formData.condition}
-                          onChange={e => setFormData({...formData, condition: e.target.value})}
+                          onChange={e => setFormData({ ...formData, condition: e.target.value })}
                           placeholder="e.g., Total Knee Replacement, Bypass Surgery"
                           className="w-full p-4 md:p-5 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter text-lg"
                         />
                       </div>
                       <div className="flex flex-col gap-3">
                         <label className="font-heading text-lg font-bold text-ink">Date of Procedure / Discharge</label>
-                        <input 
-                          type="date" 
+                        <input
+                          type="date"
                           value={formData.date}
-                          onChange={e => setFormData({...formData, date: e.target.value})}
+                          onChange={e => setFormData({ ...formData, date: e.target.value })}
                           className="w-full p-4 md:p-5 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter text-lg text-ink"
                         />
                       </div>
@@ -242,7 +241,7 @@ export default function OnboardPage() {
                   <div className="animate-fade-up flex flex-col gap-10">
                     <div>
                       <h2 className="font-heading text-[2rem] md:text-[3rem] tracking-tight text-ink mb-4 leading-tight">
-                        Tell us about <br/><span className="text-primary italic">yourself.</span>
+                        Tell us about <br /><span className="text-primary italic">yourself.</span>
                       </h2>
                       <p className="font-inter text-ink-muted text-lg">A 30-year-old athlete recovers differently than a 75-year-old.</p>
                     </div>
@@ -251,11 +250,11 @@ export default function OnboardPage() {
                       <div className="flex gap-4">
                         <div className="flex-1 flex flex-col gap-3">
                           <label className="font-heading text-lg font-bold text-ink">Age</label>
-                          <input type="number" placeholder="Years" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-lg" />
+                          <input type="number" min="0" placeholder="Years" value={formData.age} onChange={e => setFormData({ ...formData, age: e.target.value.replace(/[^\d]/g, '') })} className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-lg" />
                         </div>
                         <div className="flex-1 flex flex-col gap-3">
                           <label className="font-heading text-lg font-bold text-ink">Gender</label>
-                          <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-lg bg-none">
+                          <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-lg bg-none">
                             <option value="">Select...</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
@@ -268,9 +267,9 @@ export default function OnboardPage() {
                         <label className="font-heading text-lg font-bold text-ink">Prior Activity Level</label>
                         <div className="grid grid-cols-3 gap-4">
                           {['Sedentary', 'Moderate', 'Athletic'].map(level => (
-                            <button 
+                            <button
                               key={level}
-                              onClick={() => setFormData({...formData, activityLevel: level})}
+                              onClick={() => setFormData({ ...formData, activityLevel: level })}
                               className={`p-4 rounded-xl border text-center transition-all ${formData.activityLevel === level ? 'bg-primary/5 border-primary text-primary font-bold' : 'bg-white border-outline-variant/30 text-ink hover:border-primary/50'}`}
                             >
                               {level}
@@ -299,13 +298,13 @@ export default function OnboardPage() {
                           {['Diabetes', 'Hypertension', 'Heart Disease', 'Asthma', 'Osteoporosis', 'None'].map(condition => {
                             const isSelected = formData.comorbidities.includes(condition);
                             return (
-                              <button 
+                              <button
                                 key={condition}
                                 onClick={() => {
-                                  if (condition === 'None') setFormData({...formData, comorbidities: ['None']});
+                                  if (condition === 'None') setFormData({ ...formData, comorbidities: ['None'] });
                                   else {
-                                    const next = isSelected ? formData.comorbidities.filter(c => c !== condition) : [...formData.comorbidities.filter(c=>c!=='None'), condition];
-                                    setFormData({...formData, comorbidities: next});
+                                    const next = isSelected ? formData.comorbidities.filter(c => c !== condition) : [...formData.comorbidities.filter(c => c !== 'None'), condition];
+                                    setFormData({ ...formData, comorbidities: next });
                                   }
                                 }}
                                 className={`px-5 py-2.5 rounded-full border transition-all ${isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-white border-outline-variant/30 text-ink hover:border-primary/50'}`}
@@ -319,9 +318,9 @@ export default function OnboardPage() {
 
                       <div className="flex flex-col gap-3">
                         <label className="font-heading text-lg font-bold text-ink">Explicit Doctor Restrictions</label>
-                        <textarea 
+                        <textarea
                           value={formData.restrictions}
-                          onChange={e => setFormData({...formData, restrictions: e.target.value})}
+                          onChange={e => setFormData({ ...formData, restrictions: e.target.value })}
                           placeholder="e.g., Non-weight bearing for 2 weeks, no lifting over 10 lbs..."
                           className="w-full p-4 md:p-5 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter text-lg min-h-[100px] resize-none"
                         />
@@ -341,16 +340,16 @@ export default function OnboardPage() {
                     </div>
 
                     <div className="flex flex-col gap-8">
-                      
+
                       <div className="flex flex-col gap-4">
                         <div className="flex justify-between">
                           <label className="font-heading text-lg font-bold text-ink">Baseline Pain Level</label>
                           <span className="font-inter font-bold text-primary text-xl">{formData.baselinePain}/10</span>
                         </div>
-                        <input 
-                          type="range" min="0" max="10" 
+                        <input
+                          type="range" min="0" max="10"
                           value={formData.baselinePain}
-                          onChange={e => setFormData({...formData, baselinePain: parseInt(e.target.value)})}
+                          onChange={e => setFormData({ ...formData, baselinePain: parseInt(e.target.value) })}
                           className="w-full accent-primary"
                         />
                         <div className="flex justify-between text-xs font-inter text-ink-muted font-medium uppercase tracking-widest">
@@ -367,9 +366,9 @@ export default function OnboardPage() {
                             { id: 'partial', label: 'Partial Support', desc: 'Someone checks on me daily' },
                             { id: 'alone', label: 'Living Alone', desc: 'I am managing entirely alone' }
                           ].map(sup => (
-                            <button 
+                            <button
                               key={sup.id}
-                              onClick={() => setFormData({...formData, supportSystem: sup.id})}
+                              onClick={() => setFormData({ ...formData, supportSystem: sup.id })}
                               className={`p-5 rounded-2xl border text-left transition-all ${formData.supportSystem === sup.id ? 'bg-primary/5 border-primary shadow-sm' : 'bg-white border-outline-variant/30 hover:border-primary/50'}`}
                             >
                               <div className={`font-heading font-bold text-lg mb-1 ${formData.supportSystem === sup.id ? 'text-primary' : 'text-ink'}`}>{sup.label}</div>
@@ -386,26 +385,26 @@ export default function OnboardPage() {
 
               {/* Navigation Controls */}
               <div className="flex justify-between items-center mt-12 pt-8 border-t border-[rgba(194,200,192,0.15)]">
-                <button 
-                  type="button" 
-                  onClick={() => manualSubStep === 1 ? setStep(1) : prevManualStep()} 
+                <button
+                  type="button"
+                  onClick={() => manualSubStep === 1 ? setStep(1) : prevManualStep()}
                   className="font-inter text-ink font-medium hover:text-primary transition-colors px-4 py-2 flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                   Back
                 </button>
-                
+
                 {manualSubStep < 4 ? (
-                  <button 
+                  <button
                     type="button"
                     disabled={manualSubStep === 1 && !formData.condition}
-                    onClick={nextManualStep} 
+                    onClick={nextManualStep}
                     className="btn-secondary px-8 py-3 disabled:opacity-50"
                   >
                     Continue
                   </button>
                 ) : (
-                  <button 
+                  <button
                     onClick={handleManualSubmit}
                     disabled={!profileName || !patientPhone || patientPin.length < 4 || !caregiverPhone || isSubmitting}
                     className="btn-gradient px-8 py-4 text-lg shadow-orb animate-pulse-slow"
@@ -427,7 +426,7 @@ export default function OnboardPage() {
               <p className="font-inter text-ink-muted text-lg mb-10">
                 Let Gemini extract your diagnosis, medications, and restrictions instantly.
               </p>
-              
+
               <div className="border-2 border-dashed border-primary/30 rounded-[2rem] p-12 md:p-20 flex flex-col items-center justify-center bg-white/50 hover:bg-white hover:border-primary/60 transition-colors duration-300 cursor-pointer group">
                 <input
                   type="file"
@@ -441,12 +440,12 @@ export default function OnboardPage() {
                   }}
                 />
                 <label htmlFor="discharge-upload" className="contents cursor-pointer">
-                <div className="w-24 h-24 bg-surface-low rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary-fixed transition-all duration-500 shadow-sm">
-                  <span className="material-symbols-outlined text-primary text-[48px]">cloud_upload</span>
-                </div>
-                <h3 className="font-heading text-2xl font-bold text-ink mb-2">Tap to browse files</h3>
-                <p className="font-inter text-ink-muted">PDF, JPG, or PNG from your hospital</p>
-                {uploadName && <p className="font-inter text-primary mt-3 text-sm">Selected: {uploadName}</p>}
+                  <div className="w-24 h-24 bg-surface-low rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary-fixed transition-all duration-500 shadow-sm">
+                    <span className="material-symbols-outlined text-primary text-[48px]">cloud_upload</span>
+                  </div>
+                  <h3 className="font-heading text-2xl font-bold text-ink mb-2">Tap to browse files</h3>
+                  <p className="font-inter text-ink-muted">PDF, JPG, or PNG from your hospital</p>
+                  {uploadName && <p className="font-inter text-primary mt-3 text-sm">Selected: {uploadName}</p>}
                 </label>
               </div>
 
@@ -466,7 +465,7 @@ export default function OnboardPage() {
                   <input
                     type="tel"
                     value={patientPhone}
-                    onChange={(e) => setPatientPhone(e.target.value)}
+                    onChange={(e) => setPatientPhone(e.target.value.replace(/[^\d+]/g, ''))}
                     placeholder="+919700000000"
                     className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
                   />
@@ -487,7 +486,7 @@ export default function OnboardPage() {
                   <input
                     type="tel"
                     value={caregiverPhone}
-                    onChange={(e) => setCaregiverPhone(e.target.value)}
+                    onChange={(e) => setCaregiverPhone(e.target.value.replace(/[^\d+]/g, ''))}
                     placeholder="+919800000000"
                     className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
                   />
@@ -530,10 +529,14 @@ export default function OnboardPage() {
 
         </div>
       </div>
-      
+
       {/* Ambient background blur for wizard focus */}
       {step === 2 && mode === 'manual' && (
+<<<<<<< HEAD
          <div className="fixed top-[-50%] left-[-10%] w-[100vw] h-[100vh] bg-[radial-gradient(ellipse_at_top_left,_rgba(82, 183, 136,0.15),_transparent_70%)] pointer-events-none -z-10" />
+=======
+        <div className="fixed top-[-50%] left-[-10%] w-[100vw] h-[100vh] bg-[radial-gradient(ellipse_at_top_left,_rgba(141,170,145,0.15),_transparent_70%)] pointer-events-none -z-10" />
+>>>>>>> 12cb459 (fix(ui): enforce numeric constraints on phone, pin, and age inputs)
       )}
 
       {step === 2 && mode === 'manual' && manualSubStep === 4 && (
@@ -554,7 +557,7 @@ export default function OnboardPage() {
               <input
                 type="tel"
                 value={patientPhone}
-                onChange={(e) => setPatientPhone(e.target.value)}
+                onChange={(e) => setPatientPhone(e.target.value.replace(/[^\d+]/g, ''))}
                 placeholder="+919700000000"
                 className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
               />
@@ -575,7 +578,7 @@ export default function OnboardPage() {
               <input
                 type="tel"
                 value={caregiverPhone}
-                onChange={(e) => setCaregiverPhone(e.target.value)}
+                onChange={(e) => setCaregiverPhone(e.target.value.replace(/[^\d+]/g, ''))}
                 placeholder="+919800000000"
                 className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none transition-colors font-inter"
               />

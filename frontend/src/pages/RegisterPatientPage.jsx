@@ -132,6 +132,7 @@ export default function RegisterPatientPage() {
  </div>
  )}
 
+<<<<<<< HEAD
  {step === 1 && (
  <form onSubmit={handleGenerate} className="flex flex-col gap-8 animate-fade-up-delay">
  <div className="bg-white rounded-[2rem] p-8 flex flex-col gap-6 shadow-sm">
@@ -215,6 +216,91 @@ export default function RegisterPatientPage() {
  </Field>
  </div>
  </div>
+=======
+        {step === 1 && (
+          <form onSubmit={handleGenerate} className="flex flex-col gap-8 animate-fade-up-delay">
+            <div className="bg-white rounded-[2rem] p-8 flex flex-col gap-6 shadow-sm">
+              <h2 className="font-heading text-xl font-bold text-ink">Patient Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field label="Full Name" required>
+                  <input
+                    required
+                    value={form.name}
+                    onChange={(e) => update("name", e.target.value)}
+                    placeholder="Ramesh Patil"
+                    type="text"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Phone Number" required>
+                  <input
+                    required
+                    value={form.phone}
+                    onChange={(e) => update("phone", e.target.value.replace(/[^\d+]/g, ""))}
+                    placeholder="+91 98000 00000"
+                    type="tel"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Patient PIN" required>
+                  <input
+                    required
+                    value={form.patientPin}
+                    onChange={(e) => update("patientPin", e.target.value.replace(/\D/g, ""))}
+                    placeholder="4-8 digits"
+                    type="password"
+                    maxLength={8}
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Discharge Date" required>
+                  <input
+                    required
+                    value={form.dischargeDate}
+                    onChange={(e) => update("dischargeDate", e.target.value)}
+                    type="date"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Caregiver Phone" required>
+                  <input
+                    required
+                    value={form.caregiverPhone}
+                    onChange={(e) => update("caregiverPhone", e.target.value.replace(/[^\d+]/g, ""))}
+                    placeholder="+91 98100 00000"
+                    type="tel"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Hospital name">
+                  <input
+                    value={form.hospitalName}
+                    onChange={(e) => update("hospitalName", e.target.value)}
+                    type="text"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Hospital phone (ER line)">
+                  <input
+                    value={form.hospitalPhone}
+                    onChange={(e) => update("hospitalPhone", e.target.value.replace(/[^\d+]/g, ""))}
+                    placeholder="+91 …"
+                    type="tel"
+                    className="field-input"
+                  />
+                </Field>
+                <Field label="Recovery length (days)">
+                  <input
+                    value={form.totalDays}
+                    onChange={(e) => update("totalDays", e.target.value)}
+                    type="number"
+                    min={1}
+                    className="field-input"
+                  />
+                </Field>
+              </div>
+            </div>
+>>>>>>> 12cb459 (fix(ui): enforce numeric constraints on phone, pin, and age inputs)
 
  <div className="bg-white rounded-[2rem] p-8 flex flex-col gap-6 shadow-sm">
  <h2 className="font-heading text-xl font-bold text-ink">Surgery Type</h2>

@@ -69,7 +69,7 @@ export default function PatientLoginPage() {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/[^\d+]/g, ""))}
                 placeholder="+91 97000 00000"
                 className="w-full p-4 bg-white rounded-xl border border-outline-variant/30 focus:border-primary outline-none font-inter text-base text-ink"
               />
