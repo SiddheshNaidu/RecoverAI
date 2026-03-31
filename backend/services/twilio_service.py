@@ -17,14 +17,13 @@ logger = logging.getLogger(__name__)
 
 
 def _whatsapp_address(to: str) -> str:
-    t = (to or "").strip()
+    t = (to or "").strip().replace(" ", "")  # ← add this
     if not t:
         return ""
     lower = t.lower()
     if lower.startswith("whatsapp:"):
         return t
     return f"whatsapp:{t}"
-
 
 def _send_whatsapp_sync(account_sid: str, auth_token: str, from_: str, to: str, body: str) -> bool:
     try:
