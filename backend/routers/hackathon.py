@@ -590,7 +590,167 @@ async def adapt_plan_after_checkin(
         plan=plan,
         checkin_summary=checkin_summary,
     )
+
+    # ── Post check-in caregiver WhatsApp alert ─────────────────────────────
+    if twilio_service is not None and sb is not None:
+        try:
+            cg_res = (
+                sb.table("caregivers")
+                .select("phone, name")
+                .eq("patient_id", patient_id)
+                .limit(1)
+                .execute()
+            )
+            cg = (cg_res.data or [{}])[0]
+            cg_phone = cg.get("phone", "")
+            if cg_phone:
+                patient_name = profile.get("name", "Your patient")
+                pain = body.pain_score
+                risk = (body.risk or "LOW").upper()
+                day = day_num
+                summary_line = (body.summary or "").strip()[:120]
+                if risk == "CRITICAL":
+                    tone = "🚨 URGENT"
+                elif risk == "MODERATE":
+                    tone = "⚠️ Attention"
+                else:
+                    tone = "✅ Update"
+                msg_parts = [
+                    f"{tone} — RecoverAI",
+                    f"Patient: {patient_name} (Day {day})",
+                    f"Pain score: {pain}/10  |  Risk: {risk}",
+                ]
+                if summary_line:
+                    msg_parts.append(f"Summary: {summary_line}")
+                if risk == "CRITICAL":
+                    msg_parts.append("Please contact your loved one immediately.")
+                msg = "\n".join(msg_parts)[:500]
+                sent = await twilio_service.send_whatsapp(cg_phone, msg)
+                if sb and sent:
+                    try:
+                        sb.table("caregiver_alerts").insert([
+                            {"patient_id": patient_id, "alert_date": today, "message": msg}
+                        ]).execute()
+                    except Exception:  # noqa: BLE001
+                        pass
+        except Exception:  # noqa: BLE001
+            pass  # Never block check-in response on notification failure
+
     return payload
+
+
+# ── Missed check-in cron alert ─────────────────────────────────────────────
+# Call this at 9 PM daily (e.g. via cron → POST /api/caregiver-alerts/missed-checkin)
+# Protected by a simple secret header (CRON_SECRET env var) to avoid abuse.
+
+@router.post("/caregiver-alerts/missed-checkin")
+async def missed_checkin_alerts(request: Request) -> Any:
+    """
+    Idempotent cron endpoint: sends WhatsApp alerts to caregivers of patients
+    who have not submitted a check-in today. Safe to call multiple times.
+    """
+    import os
+
+    secret = os.getenv("CRON_SECRET", "")
+    if secret:
+        provided = request.headers.get("x-cron-secret", "")
+        if provided != secret:
+            return JSONResponse(status_code=403, content={"error": "Forbidden"})
+
+    if twilio_service is None:
+        return JSONResponse(status_code=503, content={"error": "twilio_service unavailable"})
+
+    try:
+        sb = get_supabase()
+    except Exception:
+        return _err("Database unavailable")
+
+    today = date.today().isoformat()
+    sent_count = 0
+    skipped_count = 0
+    errors: list[str] = []
+
+    try:
+        # 1. All active patients
+        pts_res = (
+            sb.table("patients")
+            .select("id, name, recovery_current_day")
+            .execute()
+        )
+        patients = pts_res.data or []
+
+        # 2. Patients who DID check in today (have a journal entry)
+        journal_res = (
+            sb.table("journal_entries")
+            .select("patient_id")
+            .eq("entry_date", today)
+            .execute()
+        )
+        checked_in_ids = {r["patient_id"] for r in (journal_res.data or [])}
+
+        # 3. Patients who already got a missed-checkin alert today (idempotency)
+        existing_alerts_res = (
+            sb.table("caregiver_alerts")
+            .select("patient_id")
+            .eq("alert_date", today)
+            .ilike("message", "%missed%check-in%")
+            .execute()
+        )
+        already_alerted_ids = {r["patient_id"] for r in (existing_alerts_res.data or [])}
+
+        missed = [
+            p for p in patients
+            if p["id"] not in checked_in_ids and p["id"] not in already_alerted_ids
+        ]
+
+        for p in missed:
+            pid = p["id"]
+            patient_name = p.get("name", "Your patient")
+            day = p.get("recovery_current_day", 1)
+            try:
+                cg_res = (
+                    sb.table("caregivers")
+                    .select("phone, name")
+                    .eq("patient_id", pid)
+                    .limit(1)
+                    .execute()
+                )
+                cg = (cg_res.data or [{}])[0]
+                cg_phone = cg.get("phone", "")
+                if not cg_phone:
+                    skipped_count += 1
+                    continue
+
+                msg = (
+                    f"📋 RecoverAI — Missed Check-in\n"
+                    f"Patient: {patient_name} (Day {day})\n"
+                    f"Your loved one has not submitted their daily check-in today. "
+                    f"Please reach out to make sure they're okay."
+                )[:500]
+
+                sent = await twilio_service.send_whatsapp(cg_phone, msg)
+                if sent:
+                    try:
+                        sb.table("caregiver_alerts").insert([
+                            {"patient_id": pid, "alert_date": today, "message": msg}
+                        ]).execute()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    sent_count += 1
+                else:
+                    errors.append(f"WhatsApp delivery failed for patient {pid}")
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"Error for patient {pid}: {exc}")
+
+    except Exception as exc:  # noqa: BLE001
+        return _err(str(exc))
+
+    return {
+        "date": today,
+        "sent": sent_count,
+        "skipped_no_caregiver": skipped_count,
+        "errors": errors,
+    }
 
 
 @router.post("/process-text")
